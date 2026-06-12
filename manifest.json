@@ -1,0 +1,22 @@
+{
+  "name": "MOB - Método de Ovulação Billings",
+  "short_name": "MOB",
+  "description": "Acompanhamento Natural da Fertilidade",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#C97B6B",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

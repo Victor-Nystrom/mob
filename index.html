@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#C97B6B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>MOB - Método de Ovulação Billings</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#FAF7F2;--card:#FFF;--text:#2D2A26;--text-muted:#8A847A;--border:#E8E2D8;--accent:#C97B6B;--accent-light:#F5E6E2;--green:#7BA68A;--green-light:#E8F2EB;--green-dark:#5A8A6A;--red:#D4605A;--red-light:#FBEAE9;--yellow:#E8C96B;--yellow-light:#FFF8E1;--blue:#6B9FC9;--blue-light:#E2EEF5;--shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 32px rgba(0,0,0,.08);--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+header{background:linear-gradient(135deg,#C97B6B,#B8695A);color:#fff;padding:24px 20px 20px;text-align:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(201,123,107,.3)}
+header h1{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400}
+header p{font-size:12px;opacity:.85;margin-top:4px}
+.tabs{display:flex;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:70px;z-index:99;overflow-x:auto}
+.tab{flex:1;padding:14px 6px;text-align:center;font-size:12px;font-weight:500;color:var(--text-muted);border:none;background:none;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+main{padding:16px;max-width:600px;margin:0 auto}
+.section{display:none}.section.active{display:block}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
+.card h2{font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:16px}
+.card h3{font-size:14px;font-weight:600;margin:14px 0 8px;color:var(--accent)}
+.card p{font-size:13px;line-height:1.6;color:var(--text-muted);margin-bottom:6px}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:15px;color:var(--text);background:var(--bg)}
+.input:focus{outline:none;border-color:var(--accent)}
+select.input{appearance:auto}
+textarea.input{resize:vertical;min-height:60px;font-size:14px}
+.btn-primary{width:100%;padding:16px;background:linear-gradient(135deg,#C97B6B,#B8695A);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:16px;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(201,123,107,.3);margin-top:8px}
+.btn-primary:active{transform:scale(.98)}
+.btn-green{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-outline{width:100%;padding:12px;background:none;border:1.5px solid var(--red);border-radius:10px;color:var(--red);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-dashed{width:100%;padding:14px;background:var(--card);border:2px dashed var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--accent);cursor:pointer;margin-bottom:16px}
+.btn-small{padding:10px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.btn-pdf{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.symbol-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.symbol-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 6px;border:2px solid var(--border);border-radius:10px;background:var(--card);cursor:pointer;gap:6px}
+.symbol-btn.selected{transform:scale(.96)}
+.symbol-btn .icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700}
+.symbol-btn .label{font-size:10px;font-weight:600;color:var(--text-muted);text-align:center;line-height:1.2}
+.symbol-btn[data-symbol="menstruacao"] .icon{background:var(--red);color:#fff}
+.symbol-btn[data-symbol="menstruacao"].selected{border-color:var(--red);background:var(--red-light)}
+.symbol-btn[data-symbol="seca"] .icon{background:var(--green);color:#fff}
+.symbol-btn[data-symbol="seca"].selected{border-color:var(--green);background:var(--green-light)}
+.symbol-btn[data-symbol="fertil"] .icon{background:#fff;color:var(--text);border:2px solid var(--border)}
+.symbol-btn[data-symbol="fertil"].selected{border-color:var(--yellow);background:var(--yellow-light)}
+.symbol-btn[data-symbol="apice"] .icon{background:var(--yellow);color:var(--text)}
+.symbol-btn[data-symbol="apice"].selected{border-color:var(--yellow);background:var(--yellow-light)}
+.chip-group{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:500;background:var(--card);cursor:pointer;color:var(--text)}
+.chip.selected{background:var(--accent-light);border-color:var(--accent);color:var(--accent);font-weight:600}
+.check-row{display:flex;align-items:center;gap:10px;padding:10px 0}
+.check-row input[type="checkbox"]{width:20px;height:20px;accent-color:var(--accent)}
+.check-row label{font-size:14px;color:var(--text);text-transform:none;letter-spacing:0;margin:0}
+.regra-group{display:flex;flex-wrap:wrap;gap:8px}
+.regra-chip{padding:8px 14px;border:1.5px solid var(--border);border-radius:20px;font-size:13px;font-weight:600;background:var(--card);cursor:pointer}
+.regra-chip.selected{background:var(--green-light);border-color:var(--green);color:var(--green-dark)}
+.stamp{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+.stamp.menstruacao{background:var(--red);color:#fff}
+.stamp.seca{background:var(--green);color:#fff}
+.stamp.fertil{background:#fff;border:2px solid var(--border);color:var(--text)}
+.stamp.apice{background:var(--yellow);color:var(--text)}
+.heart-icon{color:var(--accent);font-size:10px;margin-left:2px}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-nav h2{font-family:'DM Serif Display',serif;font-size:18px}
+.cal-nav-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--text)}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-weekday{text-align:center;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;padding:6px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day{min-height:80px;border-radius:8px;padding:4px;cursor:pointer;position:relative;overflow:hidden;border:1.5px solid transparent}
+.cal-day:active{transform:scale(.96)}
+.cal-day.empty{cursor:default;background:transparent;border:none;min-height:0}
+.cal-day .day-num{font-size:11px;font-weight:700;margin-bottom:2px;display:flex;justify-content:space-between}
+.cal-day .day-cycle{font-size:8px;color:rgba(0,0,0,.4);font-weight:600}
+.cal-day .day-info{font-size:8px;line-height:1.3;color:rgba(0,0,0,.5)}
+.cal-day .day-stamp{font-size:12px;font-weight:800;text-align:center;margin:1px 0}
+.cal-day .day-heart{position:absolute;top:3px;right:4px;font-size:9px;color:var(--accent)}
+.cal-day .day-regra{font-size:7px;font-weight:700;color:rgba(0,0,0,.35);position:absolute;bottom:2px;right:4px}
+.cal-day.t-menstruacao{background:var(--red-light);border-color:var(--red)}
+.cal-day.t-seca{background:var(--green-light);border-color:var(--green)}
+.cal-day.t-fertil{background:var(--yellow-light);border-color:var(--yellow)}
+.cal-day.t-apice{background:linear-gradient(135deg,var(--yellow-light),#FFE8CC);border-color:#E8A06B}
+.cal-day.t-pos-apice{background:var(--blue-light);border-color:var(--blue)}
+.cal-day.t-mudanca{background:#FFF3E0;border-color:var(--red);border-style:dashed}
+.cal-day.t-none{background:var(--card);border-color:var(--border)}
+.cal-day.t-today{box-shadow:0 0 0 2px var(--accent)}
+.cal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding:12px;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+.cal-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted)}
+.cal-legend-dot{width:12px;height:12px;border-radius:3px}
+.cycle-list-item{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.cycle-info h3{font-size:15px;font-weight:600}
+.cycle-info p{font-size:12px;color:var(--text-muted);margin-top:2px}
+.cycle-days-badge{background:var(--accent-light);color:var(--accent);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.legend-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.legend-item:last-child{border:none}
+.legend-text h4{font-size:14px;font-weight:600}
+.legend-text p{font-size:12px;color:var(--text-muted)}
+.pbi-banner{border-radius:var(--radius);padding:20px;margin-bottom:16px;text-align:center;box-shadow:var(--shadow)}
+.pbi-banner .phase-icon{font-size:40px;margin-bottom:8px}
+.pbi-banner .phase-name{font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:4px}
+.pbi-banner .phase-desc{font-size:13px;opacity:.85;line-height:1.5}
+.pbi-banner.pbi{background:linear-gradient(135deg,var(--green),var(--green-dark));color:#fff}
+.pbi-banner.fertil{background:linear-gradient(135deg,var(--yellow),#D4B85A);color:var(--text)}
+.pbi-banner.sem-dados{background:var(--card);color:var(--text);border:2px dashed var(--border)}
+.pbi-banner.sem-pbi{background:linear-gradient(135deg,#B8A68A,#A6947A);color:#fff}
+.pbi-banner.menstruacao{background:linear-gradient(135deg,var(--red),#C04A44);color:#fff}
+.pbi-banner.apice{background:linear-gradient(135deg,#E8A06B,#D4884A);color:#fff}
+.pbi-banner.pos-apice{background:linear-gradient(135deg,var(--blue),#5A8AB8);color:#fff}
+.pbi-banner.infertil-pos{background:linear-gradient(135deg,#8AA6C9,#6B8AB8);color:#fff}
+.pbi-rec{background:var(--accent-light);border-radius:var(--radius);padding:16px;margin-bottom:16px;border-left:4px solid var(--accent)}
+.pbi-rec h3{font-size:14px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.pbi-rec p{font-size:13px;line-height:1.6;color:var(--text)}
+.pbi-dots{display:flex;gap:4px;flex-wrap:wrap;padding:12px 0}
+.pbi-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.pbi-dot.menstruacao{background:var(--red);color:#fff}
+.pbi-dot.seca{background:var(--green);color:#fff}
+.pbi-dot.fertil{background:var(--yellow-light);color:var(--text);border:2px solid var(--yellow)}
+.pbi-dot.apice{background:var(--yellow);color:var(--text)}
+.pbi-dot.pos-apice{background:var(--blue-light);color:var(--blue);border:2px solid var(--blue)}
+.pbi-dot.mudanca{background:var(--yellow-light);color:var(--text);border:2px solid var(--red)}
+.pbi-dot.today{box-shadow:0 0 0 3px var(--accent)}
+.timeline-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:12px 0}
+.timeline-seg{height:100%}
+.timeline-seg.menstruacao{background:var(--red)}.timeline-seg.seca{background:var(--green)}.timeline-seg.fertil{background:var(--yellow)}.timeline-seg.apice{background:#E8A06B}.timeline-seg.pos-apice{background:var(--blue)}.timeline-seg.mudanca{background:var(--red)}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.detail-row:last-child{border:none}
+.detail-label{color:var(--text-muted)}.detail-value{font-weight:600}
+.pbi-combo{display:flex;align-items:center;gap:8px;padding:10px 14px;border:1.5px solid var(--green);border-radius:10px;margin-bottom:8px;background:var(--green-light);font-size:13px}
+.pbi-combo .remove-combo{margin-left:auto;color:var(--red);cursor:pointer;font-size:16px;font-weight:700}
+.pbi-history-item{border:1.5px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;position:relative}
+.pbi-history-item.current{border-color:var(--green);background:var(--green-light)}
+.pbi-history-item h4{font-size:13px;font-weight:600;margin-bottom:4px}
+.pbi-history-item p{font-size:12px;color:var(--text-muted);margin:0}
+.pbi-history-badge{position:absolute;top:10px;right:10px;background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px}
+.obj-card{border-radius:var(--radius);padding:20px;margin-bottom:16px;text-align:center}
+.obj-card.evitar{background:linear-gradient(135deg,var(--blue-light),#D6E8F5);border:2px solid var(--blue)}
+.obj-card.engravidar{background:linear-gradient(135deg,var(--accent-light),#F9DDD6);border:2px solid var(--accent)}
+.obj-card.nenhum{background:var(--card);border:2px dashed var(--border)}
+.obj-card .obj-icon{font-size:32px;margin-bottom:6px}
+.obj-card .obj-title{font-family:'DM Serif Display',serif;font-size:18px;margin-bottom:4px}
+.obj-card .obj-desc{font-size:12px;color:var(--text-muted)}
+.obj-history-item{border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;position:relative}
+.obj-history-item.current{border-color:var(--accent);background:var(--accent-light)}
+.obj-badge{position:absolute;top:8px;right:8px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;color:#fff}
+.obj-badge.evitar{background:var(--blue)}.obj-badge.engravidar{background:var(--accent)}
+.rule-box{background:var(--bg);border-radius:8px;padding:12px;margin:12px 0;border-left:3px solid var(--green)}
+.rule-box.warn{border-left-color:var(--yellow)}.rule-box.danger{border-left-color:var(--red)}
+.rule-box h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.rule-box p{font-size:12px;line-height:1.5;color:var(--text-muted);margin:0}
+.orientation-box{background:var(--accent-light);border-radius:8px;padding:12px;margin:8px 0;border-left:3px solid var(--accent)}
+.orientation-box h4{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--accent)}
+.orientation-box p{font-size:12px;line-height:1.5;color:var(--text);margin:0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:150;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:24px 20px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--text);color:#fff;padding:14px 24px;border-radius:10px;font-size:14px;font-weight:500;z-index:200;transition:transform .3s ease}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted)}
+.empty-state .emoji{font-size:40px;margin-bottom:12px}
+</style>
+</head>
+<body>
+<header><h1>Método de Ovulação Billings</h1><p>Acompanhamento Natural da Fertilidade</p><div id="sync-status" style="font-size:10px;margin-top:6px;opacity:.8;cursor:pointer" onclick="manualSync()">☁️ Conectando...</div></header>
+<nav class="tabs">
+<button class="tab active" data-tab="registro">Registro</button>
+<button class="tab" data-tab="pbi">PBI</button>
+<button class="tab" data-tab="grafico">Gráfico</button>
+<button class="tab" data-tab="ciclos">Ciclos</button>
+<button class="tab" data-tab="info">Info</button>
+</nav>
+<main>
+
+<!-- REGISTRO -->
+<div class="section active" id="sec-registro"><div class="card"><h2>Registro Diário</h2>
+<div class="form-group"><label>Data</label><input type="date" class="input" id="entry-date"></div>
+<div class="form-group"><label>Símbolo / Selo</label><div class="symbol-grid">
+<button class="symbol-btn" data-symbol="menstruacao" onclick="selSym(this)"><div class="icon">●</div><div class="label">Menstruação</div></button>
+<button class="symbol-btn" data-symbol="seca" onclick="selSym(this)"><div class="icon">|</div><div class="label">Seca / Infértil</div></button>
+<button class="symbol-btn" data-symbol="fertil" onclick="selSym(this)"><div class="icon">○</div><div class="label">Fértil</div></button>
+<button class="symbol-btn" data-symbol="apice" onclick="selSym(this)"><div class="icon">✕</div><div class="label">Ápice</div></button>
+</div></div>
+<div class="form-group"><label>Sensação na Vulva <span style="font-size:10px;font-weight:400;color:var(--accent);cursor:pointer" onclick="toggleCustom('sensacao')">✏️ editar opções</span></label>
+<div class="chip-group" id="sensacao-chips-reg"></div>
+<div id="sensacao-edit" style="display:none;margin-top:8px"><div style="display:flex;gap:6px"><input class="input" id="sensacao-new" placeholder="Nova sensação..." style="flex:1;padding:8px 10px;font-size:13px"><button class="btn-small" onclick="addCustom('sensacao')" style="width:auto;padding:8px 12px">+</button></div><p style="font-size:10px;color:var(--text-muted);margin-top:4px">Toque no ✕ de uma opção para removê-la.</p></div>
+</div>
+<div class="form-group"><label>Aparência do Fluxo <span style="font-size:10px;font-weight:400;color:var(--accent);cursor:pointer" onclick="toggleCustom('aparencia')">✏️ editar opções</span></label>
+<div class="chip-group" id="aparencia-chips-reg"></div>
+<div id="aparencia-edit" style="display:none;margin-top:8px"><div style="display:flex;gap:6px"><input class="input" id="aparencia-new" placeholder="Nova aparência..." style="flex:1;padding:8px 10px;font-size:13px"><button class="btn-small" onclick="addCustom('aparencia')" style="width:auto;padding:8px 12px">+</button></div><p style="font-size:10px;color:var(--text-muted);margin-top:4px">Toque no ✕ de uma opção para removê-la.</p></div>
+</div>
+<div class="form-group"><label>Dia do Ciclo</label><input type="number" class="input" id="entry-dia" min="1" max="999" placeholder="Ex: 14"></div>
+<div class="form-group"><label>Regra MOB (opcional — preenchida automaticamente se vazio)</label><div class="regra-group">
+<button class="regra-chip" onclick="selRegra(this)" data-regra="R1">R1</button>
+<button class="regra-chip" onclick="selRegra(this)" data-regra="R2">R2</button>
+<button class="regra-chip" onclick="selRegra(this)" data-regra="R3">R3</button>
+<button class="regra-chip" onclick="selRegra(this)" data-regra="RA">Ápice</button>
+<button class="regra-chip" onclick="selRegra(this)" data-regra="">Nenhuma</button>
+</div></div>
+<div class="form-group"><div class="check-row"><input type="checkbox" id="relacao-check"><label for="relacao-check">Relação sexual ♥</label></div></div>
+<div class="form-group"><label>Observações</label><textarea class="input" id="entry-notes" placeholder="Anotações..."></textarea></div>
+<button class="btn-primary" onclick="saveEntry()">Salvar Registro</button>
+</div></div>
+
+<!-- PBI -->
+<div class="section" id="sec-pbi">
+<div id="pbi-banner-el"></div><div id="pbi-rec-el"></div>
+<div class="card"><h2>Mapa do Ciclo</h2><div id="pbi-timeline"></div><div class="pbi-dots" id="pbi-dots"></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px"><span>Dia 1</span><span id="pbi-last-day"></span></div></div>
+<div class="card"><h2>📊 Análise</h2><div id="pbi-detail-rows"></div></div>
+<div class="card"><h2>Configurar PBI</h2>
+<p style="margin-bottom:8px">Defina <strong>todas</strong> as combinações de Sensação + Aparência que representam o padrão "sem mudança".</p>
+<p style="margin-bottom:16px;font-size:12px;color:var(--accent)">Adicione quantas combinações forem necessárias — todas serão consideradas como PBI.</p>
+<div class="form-group"><label>Adicionar combinação</label>
+<div style="display:flex;gap:8px;margin-bottom:8px">
+<select class="input" id="pbi-add-s" style="flex:1"></select>
+<select class="input" id="pbi-add-a" style="flex:1"></select>
+</div>
+<button class="btn-small" onclick="addPbiCombo()" style="width:auto">+ Adicionar</button>
+</div>
+<div class="form-group"><label>Combinações que são PBI</label><div id="pbi-combos-list"><p style="color:var(--text-muted);font-size:13px">Nenhuma definida.</p></div></div>
+<div class="form-group"><label>Data de início</label><input type="date" class="input" id="pbi-start-date"><p style="font-size:11px;color:var(--text-muted);margin-top:4px">Histórico anterior não muda.</p></div>
+<button class="btn-green" onclick="savePbiConfig()">Salvar PBI</button>
+</div>
+<div class="card"><h2>Histórico de PBI</h2><div id="pbi-history-list"></div></div>
+</div>
+
+<!-- GRÁFICO -->
+<div class="section" id="sec-grafico">
+<div class="cal-nav">
+<button class="cal-nav-btn" onclick="calNav(-1)">‹</button>
+<h2 id="cal-month-title"></h2>
+<button class="cal-nav-btn" onclick="calNav(1)">›</button>
+</div>
+<div class="cal-weekdays"><div class="cal-weekday">Dom</div><div class="cal-weekday">Seg</div><div class="cal-weekday">Ter</div><div class="cal-weekday">Qua</div><div class="cal-weekday">Qui</div><div class="cal-weekday">Sex</div><div class="cal-weekday">Sáb</div></div>
+<div class="cal-grid" id="cal-grid"></div>
+<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+<button class="btn-small" onclick="exportCSV()">CSV</button>
+<button class="btn-pdf" onclick="openPdfModal()">PDF Gráfico MOB</button>
+</div>
+<div class="cal-legend">
+<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--red-light);border:1px solid var(--red)"></div>Menstr.</div>
+<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--green-light);border:1px solid var(--green)"></div>Seca</div>
+<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow-light);border:1px solid var(--yellow)"></div>Fértil</div>
+<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFE8CC;border:1px solid #E8A06B"></div>Ápice</div>
+<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>Pós-Áp.</div>
+</div>
+</div>
+
+<!-- CICLOS -->
+<div class="section" id="sec-ciclos">
+<div id="obj-current-card"></div>
+<div class="card"><h2>Definir Objetivo</h2>
+<p style="margin-bottom:14px">O sistema orienta com base no objetivo. Histórico preserva a orientação da época.</p>
+<div class="form-group"><label>Objetivo</label><select class="input" id="obj-select"><option value="evitar">Evitar gravidez</option><option value="engravidar">Engravidar</option></select></div>
+<div class="form-group"><label>A partir de</label><input type="date" class="input" id="obj-start-date"></div>
+<button class="btn-primary" onclick="saveObj()" style="background:linear-gradient(135deg,var(--blue),#5A8AB8)">Salvar Objetivo</button>
+</div>
+<div class="card"><h2>Histórico de Objetivos</h2><div id="obj-history-list"></div></div>
+<button class="btn-dashed" onclick="newCycle()">+ Iniciar Novo Ciclo</button>
+<div id="cycles-list"></div>
+
+<!-- SYNC CONFIG -->
+<div class="card" style="margin-top:16px">
+<h2>☁️ Sincronização</h2>
+<p style="margin-bottom:12px">Cole a URL do Google Apps Script para sincronizar entre celulares.</p>
+<div class="form-group"><label>URL do Apps Script</label>
+<input type="url" class="input" id="sync-url" placeholder="https://script.google.com/macros/s/...">
+</div>
+<div style="display:flex;gap:8px">
+<button class="btn-green" onclick="saveSyncUrl()" style="flex:1">Salvar URL</button>
+<button class="btn-small" onclick="syncNow()" style="flex:1;background:var(--blue)">Sincronizar Agora</button>
+</div>
+<div id="sync-log" style="margin-top:12px;font-size:11px;color:var(--text-muted)"></div>
+</div>
+</div>
+
+<!-- INFO -->
+<div class="section" id="sec-info">
+<div class="card"><h2>Legenda dos Selos</h2>
+<div class="legend-item"><div class="stamp menstruacao">●</div><div class="legend-text"><h4>Menstruação</h4><p>Sangramento — selo vermelho</p></div></div>
+<div class="legend-item"><div class="stamp seca">|</div><div class="legend-text"><h4>Seca / Infértil</h4><p>Vulva seca — selo verde</p></div></div>
+<div class="legend-item"><div class="stamp fertil">○</div><div class="legend-text"><h4>Fértil</h4><p>Mudança, muco — selo branco com bebê</p></div></div>
+<div class="legend-item"><div class="stamp apice">✕</div><div class="legend-text"><h4>Ápice</h4><p>Último dia escorregadio</p></div></div>
+<div class="legend-item"><span style="color:var(--accent);font-size:22px">♥</span><div class="legend-text"><h4>Relação</h4><p>Indica relação no dia</p></div></div>
+</div>
+<div class="card"><h2>Regras do MOB</h2>
+<h3>Para Evitar</h3>
+<p><strong>R1:</strong> Evitar relações em sangramento forte.</p>
+<p><strong>R2:</strong> Noites alternadas nos dias de PBI.</p>
+<p><strong>R3:</strong> Evitar em dia de fluxo que interrompa PBI. 3 dias de PBI, retomar 4ª noite.</p>
+<p><strong>RA:</strong> 4º dia pós-Ápice em diante, relações todos os dias.</p>
+<h3>Para Engravidar</h3>
+<p>Relações durante sensação escorregadia e 1-2 dias após o Ápice.</p>
+</div>
+</div>
+</main>
+<div class="modal-overlay" id="pdf-modal"><div class="modal" style="max-height:60vh">
+<div class="modal-handle"></div>
+<h2 style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:12px">Exportar PDF</h2>
+<p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">Selecione o período que deseja exportar no formato do gráfico CENPLAFAM.</p>
+<div class="form-group"><label>Data Início</label><input type="date" class="input" id="pdf-start"></div>
+<div class="form-group"><label>Data Fim</label><input type="date" class="input" id="pdf-end"></div>
+<div id="pdf-preview" style="font-size:12px;color:var(--text-muted);margin-bottom:12px"></div>
+<button class="btn-primary" onclick="exportPDF()" style="background:var(--accent)">Gerar PDF</button>
+<button class="btn-outline-accent" onclick="document.getElementById('pdf-modal').classList.remove('show')" style="border-color:var(--text-muted);color:var(--text-muted)">Cancelar</button>
+</div></div>
+<div class="modal-overlay" id="edit-modal"><div class="modal"><div class="modal-handle"></div><div id="modal-content"></div></div></div>
+<div class="toast" id="toast-el"></div>
+
+<script>
+const SK='mob_data';
+function load(){try{const r=localStorage.getItem(SK);if(r)return JSON.parse(r)}catch(e){}return{cycles:[],currentCycleIndex:-1,pbiHistory:[],objHistory:[]}}
+function save(d){localStorage.setItem(SK,JSON.stringify(d))}
+function cc(d){return(d.currentCycleIndex>=0&&d.currentCycleIndex<d.cycles.length)?d.cycles[d.currentCycleIndex]:null}
+function getAPbi(date){if(!D.pbiHistory||!D.pbiHistory.length)return null;let a=null;for(const p of D.pbiHistory){if(p.startDate<=date)a=p;else break}return a}
+function isPbi(e){const p=getAPbi(e.date);if(!p||!p.combos||!p.combos.length)return null;return p.combos.some(c=>c[0]===e.sensacao&&c[1]===e.aparencia)}
+function getAObj(date){if(!D.objHistory||!D.objHistory.length)return null;let a=null;for(const o of D.objHistory){if(o.startDate<=date)a=o;else break}return a}
+
+function detectRule(e,cy){
+  if(!cy||!cy.entries)return{rule:'',desc:'',cls:''};
+  const es=cy.entries,idx=es.findIndex(x=>x.date===e.date);
+  if(idx<0)return{rule:'',desc:'',cls:''};
+  if(e.symbol==='menstruacao')return{rule:'R1',desc:'Menstruação — evitar relações em sangramento forte.',cls:'warn'};
+  if(e.symbol==='apice')return{rule:'RA',desc:'Dia do Ápice — máxima fertilidade. Aguardar 3 dias completos.',cls:'danger'};
+  if(e.symbol==='fertil')return{rule:'R3',desc:'Muco fértil — mudança no padrão. Possível fertilidade.',cls:'danger'};
+  const ai=es.findIndex(x=>x.symbol==='apice');
+  if(ai>=0&&idx>ai){const pd=idx-ai;if(pd<=3)return{rule:'RA',desc:`Pós-Ápice ${pd}/3 — aguardar 4ª noite.`,cls:'warn'};return{rule:'RA',desc:`Pós-Ápice dia ${pd} — relações disponíveis.`,cls:''};}
+  if(e.symbol==='seca'){const m=isPbi(e);if(m===null)return{rule:'',desc:'PBI não definido.',cls:''};if(m)return{rule:'R2',desc:'Dentro do PBI — noites alternadas.',cls:''};return{rule:'R3',desc:'Fora do PBI — possível mudança. Aguardar 3 dias de PBI (4ª noite).',cls:'warn'};}
+  return{rule:'',desc:'',cls:''}
+}
+function getOrient(e,cy){
+  const obj=getAObj(e.date);if(!obj)return null;
+  const es=cy?cy.entries:[],ai=es.findIndex(x=>x.symbol==='apice'),idx=es.findIndex(x=>x.date===e.date),pa=ai>=0&&idx>ai?idx-ai:-1;
+  const r=detectRule(e,cy);
+  if(obj.type==='evitar'){
+    if(e.symbol==='menstruacao')return{text:'Evitar em sangramento forte.',icon:'🛡️'};
+    if(e.symbol==='fertil')return{text:'Período fértil! Abster-se até 4º dia pós-Ápice.',icon:'⚠️'};
+    if(e.symbol==='apice')return{text:'Dia mais fértil! Contar 3 dias. Só retomar 4ª noite.',icon:'🚫'};
+    if(pa>0&&pa<=3)return{text:`Pós-Ápice ${pa}/3. Não ter relações.`,icon:'⏳'};
+    if(pa>3)return{text:'Relações liberadas todos os dias.',icon:'✅'};
+    if(r.rule==='R2')return{text:'PBI. Noites alternadas.',icon:'🟢'};
+    if(r.rule==='R3')return{text:'Mudança! Evitar. Aguardar 3 dias PBI, 4ª noite.',icon:'⚠️'};
+    return null;
+  }
+  if(obj.type==='engravidar'){
+    if(e.symbol==='menstruacao')return{text:'Aguardar muco fértil.',icon:'⏳'};
+    if(e.symbol==='fertil')return{text:'Muco fértil! Momento ideal.',icon:'💚'};
+    if(e.symbol==='apice')return{text:'Máxima fertilidade! Relações hoje e amanhã.',icon:'💚'};
+    if(pa===1)return{text:'1 dia pós-Ápice. Ainda há chances.',icon:'💚'};
+    if(pa===2)return{text:'2 dias pós-Ápice. Chances diminuindo.',icon:'🟡'};
+    if(pa>2)return{text:'Janela fértil encerrada.',icon:'⏳'};
+    if(r.rule==='R2')return{text:'PBI — aguardar mudança.',icon:'⏳'};
+    if(r.rule==='R3')return{text:'Possível mudança! Observar evolução.',icon:'👀'};
+    return null;
+  }
+  return null;
+}
+
+// SEED
+function seedData(){
+  const ex=load();if(ex.cycles.length>0&&ex.cycles[0].entries&&ex.cycles[0].entries.length>=53)return ex;
+  localStorage.removeItem(SK);
+  const E=[
+    {id:1,date:"2026-01-29",dia:1,symbol:"seca",sensacao:"Úmida",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:2,date:"2026-01-30",dia:2,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:3,date:"2026-01-31",dia:3,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:4,date:"2026-02-01",dia:4,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:true,notes:""},
+    {id:5,date:"2026-02-02",dia:5,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:6,date:"2026-02-03",dia:6,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:7,date:"2026-02-04",dia:7,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:8,date:"2026-02-05",dia:8,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:9,date:"2026-02-06",dia:9,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:10,date:"2026-02-07",dia:10,symbol:"seca",sensacao:"Seca",aparencia:"Catarro",regra:"R3",relacao:false,notes:""},
+    {id:11,date:"2026-02-08",dia:11,symbol:"seca",sensacao:"Seca",aparencia:"Catarro",regra:"R3",relacao:false,notes:""},
+    {id:12,date:"2026-02-09",dia:12,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:13,date:"2026-02-10",dia:13,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:14,date:"2026-02-11",dia:14,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:15,date:"2026-02-12",dia:15,symbol:"apice",sensacao:"Lubrificada",aparencia:"Creme",regra:"RA",relacao:false,notes:"Ápice marcado pela instrutora."},
+    {id:16,date:"2026-02-13",dia:16,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"RA",relacao:false,notes:""},
+    {id:17,date:"2026-02-14",dia:17,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"RA",relacao:false,notes:""},
+    {id:18,date:"2026-02-15",dia:18,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"RA",relacao:true,notes:""},
+    {id:19,date:"2026-02-16",dia:19,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:20,date:"2026-02-17",dia:20,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:true,notes:""},
+    {id:21,date:"2026-02-18",dia:21,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:22,date:"2026-02-19",dia:22,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:23,date:"2026-02-20",dia:23,symbol:"seca",sensacao:"Úmida",aparencia:"Creme",regra:"R3",relacao:false,notes:""},
+    {id:24,date:"2026-02-21",dia:24,symbol:"seca",sensacao:"Úmida",aparencia:"Creme",regra:"R3",relacao:false,notes:""},
+    {id:25,date:"2026-02-22",dia:25,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:26,date:"2026-02-23",dia:26,symbol:"seca",sensacao:"Úmida",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:27,date:"2026-02-24",dia:27,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:28,date:"2026-02-25",dia:28,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:29,date:"2026-02-26",dia:29,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:30,date:"2026-02-27",dia:30,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:true,notes:""},
+    {id:31,date:"2026-02-28",dia:31,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:32,date:"2026-03-01",dia:32,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:33,date:"2026-03-02",dia:33,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:34,date:"2026-03-03",dia:34,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:35,date:"2026-03-04",dia:35,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:true,notes:""},
+    {id:36,date:"2026-03-05",dia:36,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:37,date:"2026-03-06",dia:37,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:38,date:"2026-03-07",dia:38,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:39,date:"2026-03-08",dia:39,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:40,date:"2026-03-09",dia:40,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:41,date:"2026-03-10",dia:41,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
+    {id:42,date:"2026-03-11",dia:42,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
+    {id:43,date:"2026-03-12",dia:43,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
+    {id:44,date:"2026-03-13",dia:44,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:45,date:"2026-03-14",dia:45,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:46,date:"2026-03-15",dia:46,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:47,date:"2026-03-16",dia:47,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
+    {id:48,date:"2026-03-17",dia:48,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
+    {id:49,date:"2026-03-18",dia:49,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:50,date:"2026-03-19",dia:50,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
+    {id:51,date:"2026-03-20",dia:51,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"",relacao:false,notes:""},
+    {id:52,date:"2026-03-21",dia:52,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"",relacao:false,notes:""},
+    {id:53,date:"2026-03-22",dia:53,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"",relacao:false,notes:""},
+  ];
+  const data={cycles:[{id:1,name:"Ciclo Pós-Parto (Amamentação)",startDate:"2026-01-29",entries:E}],currentCycleIndex:0,pbiHistory:[],objHistory:[]};
+  save(data);return data;
+}
+
+let D=seedData();if(!D.cycles||!D.cycles.length)D=load();
+if(!D.pbiHistory)D.pbiHistory=[];if(!D.objHistory)D.objHistory=[];
+
+// ONE-TIME MIGRATION: shift dates 1 month back for May 2026+
+if(!D._migrationDateShiftDone){
+  let migrated=0;
+  D.cycles.forEach(cy=>{
+    if(!cy.entries)return;
+    cy.entries.forEach(e=>{
+      if(e.date>='2026-05-01'){
+        const dt=new Date(e.date+'T12:00:00');
+        dt.setMonth(dt.getMonth()-1);
+        e.date=dt.toISOString().split('T')[0];
+        migrated++;
+      }
+    });
+    cy.entries.sort((a,b)=>a.date.localeCompare(b.date));
+  });
+  D._migrationDateShiftDone=true;
+  save(D);
+  if(migrated>0)console.log('Migração: '+migrated+' registros corrigidos (1 mês para trás)');
+}
+
+// ONE-TIME MIGRATION 2: Add chart data from photo (April 10 - June 9, 2026)
+if(!D._migrationChart2Done){
+  const cy=D.cycles[0];
+  if(cy){
+    const newEntries=[
+      // APRIL 10-30
+      {date:"2026-04-10",dia:72,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-11",dia:73,symbol:"seca",sensacao:"Umida",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-04-12",dia:74,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-13",dia:75,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-14",dia:76,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:true,notes:""},
+      {date:"2026-04-15",dia:77,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:true,notes:"Liq. seminal"},
+      {date:"2026-04-16",dia:78,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:"Shampoo"},
+      {date:"2026-04-17",dia:79,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:"Shampoo / liq. seminal"},
+      {date:"2026-04-18",dia:80,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-19",dia:81,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:""},
+      {date:"2026-04-20",dia:82,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-21",dia:83,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-22",dia:84,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:""},
+      {date:"2026-04-23",dia:85,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-24",dia:86,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-25",dia:87,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-26",dia:88,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:""},
+      {date:"2026-04-27",dia:89,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-04-28",dia:90,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-04-29",dia:91,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-04-30",dia:92,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:""},
+      // MAY 1-31
+      {date:"2026-05-01",dia:93,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-02",dia:94,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-03",dia:95,symbol:"seca",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-04",dia:96,symbol:"seca",sensacao:"Umida",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-05",dia:97,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-06",dia:98,symbol:"fertil",sensacao:"Umida",aparencia:"Creme",relacao:false,notes:"Inicio de mudanca progressiva"},
+      {date:"2026-05-07",dia:99,symbol:"fertil",sensacao:"Umida",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-08",dia:100,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-09",dia:101,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-10",dia:102,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-11",dia:103,symbol:"fertil",sensacao:"Molhada",aparencia:"Viscoso",relacao:false,notes:"Possivel apice - confirmar com instrutora. Mudanca progressiva atingiu pico (molhada)."},
+      {date:"2026-05-12",dia:104,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:"Mudanca abrupta de molhada para seca."},
+      {date:"2026-05-13",dia:105,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-14",dia:106,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-15",dia:107,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:true,notes:""},
+      {date:"2026-05-16",dia:108,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-17",dia:109,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-18",dia:110,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-19",dia:111,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-05-20",dia:112,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-05-21",dia:113,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-05-22",dia:114,symbol:"seca",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-23",dia:115,symbol:"seca",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-24",dia:116,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-25",dia:117,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-05-26",dia:118,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-05-27",dia:119,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-05-28",dia:120,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:true,notes:""},
+      {date:"2026-05-29",dia:121,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-05-30",dia:122,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-05-31",dia:123,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:true,notes:""},
+      // JUNE 1-9
+      {date:"2026-06-01",dia:124,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:"Liq. seminal"},
+      {date:"2026-06-02",dia:125,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-06-03",dia:126,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+      {date:"2026-06-04",dia:127,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:true,notes:""},
+      {date:"2026-06-05",dia:128,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-06-06",dia:129,symbol:"seca",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-06-07",dia:130,symbol:"seca",sensacao:"Umida",aparencia:"Viscoso",relacao:false,notes:""},
+      {date:"2026-06-08",dia:131,symbol:"seca",sensacao:"Seca",aparencia:"Nada",relacao:false,notes:""},
+      {date:"2026-06-09",dia:132,symbol:"seca",sensacao:"Seca",aparencia:"Creme",relacao:false,notes:""},
+    ];
+    // Only add entries for dates that don't already exist
+    newEntries.forEach(ne=>{
+      if(!cy.entries.some(e=>e.date===ne.date)){
+        ne.id=Date.now()+Math.random()*1000|0;
+        ne.regra='';
+        cy.entries.push(ne);
+      }
+    });
+    cy.entries.sort((a,b)=>a.date.localeCompare(b.date));
+    D._migrationChart2Done=true;
+    save(D);
+    console.log('Migração 2: dados de abril-junho adicionados');
+  }
+}
+// Custom sensacao/aparencia lists
+const defaultSens=['Seca','Umida','Molhada','Escorregadia','Lubrificada','Pegajosa'];
+const defaultApar=['Nada','Creme','Viscoso','Elastico','Transparente','Opaco','Catarro','Pouco','Sangue'];
+if(!D.customSensacoes)D.customSensacoes=[...defaultSens];
+if(!D.customAparencias)D.customAparencias=[...defaultApar];
+save(D);
+document.getElementById('entry-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('obj-start-date').value=new Date().toISOString().split('T')[0];
+
+// CHIP RENDERING
+function renderRegChips(){
+  const sc=document.getElementById('sensacao-chips-reg'),ac=document.getElementById('aparencia-chips-reg');
+  const editS=document.getElementById('sensacao-edit').style.display!=='none';
+  const editA=document.getElementById('aparencia-edit').style.display!=='none';
+  sc.innerHTML=D.customSensacoes.map(s=>`<button class="chip ${fSens===s?'selected':''}" onclick="selChip(this,'sensacao')">${s}${editS?` <span style="color:var(--red);font-weight:700;margin-left:2px" onclick="event.stopPropagation();rmCustom('sensacao','${s}')">✕</span>`:''}</button>`).join('');
+  ac.innerHTML=D.customAparencias.map(a=>`<button class="chip ${fApar===a?'selected':''}" onclick="selChip(this,'aparencia')">${a}${editA?` <span style="color:var(--red);font-weight:700;margin-left:2px" onclick="event.stopPropagation();rmCustom('aparencia','${a}')">✕</span>`:''}</button>`).join('');
+  // Update PBI selects too
+  const ps=document.getElementById('pbi-add-s'),pa=document.getElementById('pbi-add-a');
+  if(ps)ps.innerHTML='<option value="">Sensacao</option>'+D.customSensacoes.map(s=>`<option>${s}</option>`).join('');
+  if(pa)pa.innerHTML='<option value="">Aparencia</option>'+D.customAparencias.map(a=>`<option>${a}</option>`).join('');
+}
+function toggleCustom(type){const el=document.getElementById(type+'-edit');el.style.display=el.style.display==='none'?'block':'none';renderRegChips()}
+function addCustom(type){const inp=document.getElementById(type+'-new');const v=inp.value.trim();if(!v){toast('Digite um nome');return}const list=type==='sensacao'?D.customSensacoes:D.customAparencias;if(list.includes(v)){toast('Ja existe');return}list.push(v);save(D);inp.value='';renderRegChips();toast('Adicionado!')}
+function rmCustom(type,val){if(!confirm('Remover "'+val+'"?'))return;const list=type==='sensacao'?D.customSensacoes:D.customAparencias;const idx=list.indexOf(val);if(idx>=0)list.splice(idx,1);save(D);renderRegChips();toast('Removido')}
+
+// FORM STATE (declared early so renderRegChips can access)
+let fSym='',fSens='',fApar='',fRegra='';
+
+renderRegChips();
+autoFillDia();
+
+// FORM
+function selSym(b){document.querySelectorAll('#sec-registro .symbol-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');fSym=b.dataset.symbol}
+function selChip(c,g){c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');if(g==='sensacao')fSens=c.textContent.replace(/\s*✕$/,'');if(g==='aparencia')fApar=c.textContent.replace(/\s*✕$/,'')}
+function selRegra(b){document.querySelectorAll('#sec-registro .regra-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');fRegra=b.dataset.regra}
+function autoFillDia(){const c=cc(D);if(c)document.getElementById('entry-dia').value=c.entries.length+1}
+
+function saveEntry(){
+  const date=document.getElementById('entry-date').value,dia=document.getElementById('entry-dia').value;
+  const relacao=document.getElementById('relacao-check').checked,notes=document.getElementById('entry-notes').value;
+  if(!date||!fSym){toast('Preencha data e símbolo');return}
+  const entry={id:Date.now(),date,dia:parseInt(dia)||0,symbol:fSym,sensacao:fSens,aparencia:fApar,regra:fRegra,relacao,notes};
+  const cycle=cc(D);if(!cycle){toast('Crie um ciclo');return}
+  const ei=cycle.entries.findIndex(e=>e.date===date);
+  if(ei>=0)cycle.entries[ei]=entry;else cycle.entries.push(entry);
+  cycle.entries.sort((a,b)=>a.date.localeCompare(b.date));
+  save(D);toast('Salvo! ✓');autoSync();
+  fSym='';fSens='';fApar='';fRegra='';
+  document.querySelectorAll('.symbol-btn,.chip,.regra-chip').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('relacao-check').checked=false;document.getElementById('entry-notes').value='';
+  const c=new Date(date);c.setDate(c.getDate()+1);document.getElementById('entry-date').value=c.toISOString().split('T')[0];
+  autoFillDia();
+}
+
+// TABS
+document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  tab.classList.add('active');document.getElementById('sec-'+tab.dataset.tab).classList.add('active');
+  if(tab.dataset.tab==='grafico')renderCal();if(tab.dataset.tab==='ciclos')renderCiclos();if(tab.dataset.tab==='pbi')renderPBI();
+})});
+
+// OBJECTIVE
+function saveObj(){const t=document.getElementById('obj-select').value,sd=document.getElementById('obj-start-date').value;if(!sd){toast('Data');return}D.objHistory=D.objHistory.filter(o=>o.startDate!==sd);D.objHistory.push({id:Date.now(),type:t,startDate:sd});D.objHistory.sort((a,b)=>a.startDate.localeCompare(b.startDate));save(D);toast('Objetivo salvo!');renderCiclos();autoSync()}
+function delObj(id){if(!confirm('Excluir?'))return;D.objHistory=D.objHistory.filter(o=>o.id!==id);save(D);renderCiclos()}
+function renderObjCard(){const el=document.getElementById('obj-current-card'),obj=getAObj(new Date().toISOString().split('T')[0]);if(!obj){el.innerHTML='<div class="obj-card nenhum"><div class="obj-icon">🎯</div><div class="obj-title">Sem Objetivo</div><div class="obj-desc">Defina abaixo.</div></div>';return}el.innerHTML=obj.type==='evitar'?'<div class="obj-card evitar"><div class="obj-icon">🛡️</div><div class="obj-title">Evitando Gravidez</div></div>':'<div class="obj-card engravidar"><div class="obj-icon">💚</div><div class="obj-title">Buscando Gravidez</div></div>'}
+function renderObjHist(){const el=document.getElementById('obj-history-list');if(!D.objHistory.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nenhum.</p>';return}const today=new Date().toISOString().split('T')[0],act=getAObj(today);el.innerHTML=D.objHistory.map(o=>{const cur=act&&act.id===o.id,ds=new Date(o.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}),lb=o.type==='evitar'?'Evitar':'Engravidar';return`<div class="obj-history-item ${cur?'current':''}"><span class="obj-badge ${o.type}">${cur?'ATIVO':lb}</span><h4 style="font-size:13px;font-weight:600">${lb}</h4><p style="font-size:12px;color:var(--text-muted)">Desde ${ds}</p><button style="margin-top:6px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:none;color:var(--red);font-size:11px;cursor:pointer" onclick="delObj(${o.id})">Excluir</button></div>`}).join('')}
+
+// PBI
+let tempC=[];
+function addPbiCombo(){const s=document.getElementById('pbi-add-s').value,a=document.getElementById('pbi-add-a').value;if(!s||!a){toast('Selecione ambos');return}if(tempC.some(c=>c[0]===s&&c[1]===a)){toast('Já existe');return}tempC.push([s,a]);renderPbiC();document.getElementById('pbi-add-s').value='';document.getElementById('pbi-add-a').value=''}
+function rmPbiC(i){tempC.splice(i,1);renderPbiC()}
+function renderPbiC(){const l=document.getElementById('pbi-combos-list');if(!tempC.length){l.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nenhuma definida.</p>';return}l.innerHTML=tempC.map((c,i)=>`<div class="pbi-combo">🟢 ${c[0]} / ${c[1]}<span class="remove-combo" onclick="rmPbiC(${i})">×</span></div>`).join('')}
+function savePbiConfig(){const sd=document.getElementById('pbi-start-date').value;if(!sd){toast('Data');return}if(!tempC.length){toast('Adicione combinações');return}D.pbiHistory=D.pbiHistory.filter(p=>p.startDate!==sd);D.pbiHistory.push({id:Date.now(),startDate:sd,combos:tempC.map(c=>[...c])});D.pbiHistory.sort((a,b)=>a.startDate.localeCompare(b.startDate));save(D);toast('PBI salvo!');renderPBI();autoSync()}
+function delPbi(id){if(!confirm('Excluir?'))return;D.pbiHistory=D.pbiHistory.filter(p=>p.id!==id);save(D);renderPBI()}
+function renderPbiHist(){const l=document.getElementById('pbi-history-list');if(!D.pbiHistory.length){l.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nenhum.</p>';return}const today=new Date().toISOString().split('T')[0],act=getAPbi(today);l.innerHTML=D.pbiHistory.map(p=>{const cur=act&&act.id===p.id,ds=new Date(p.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});return`<div class="pbi-history-item ${cur?'current':''}">${cur?'<span class="pbi-history-badge">ATIVO</span>':''}<h4>Desde ${ds}</h4><p>${p.combos.map(c=>c[0]+' / '+c[1]).join(' • ')}</p><button style="margin-top:6px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:none;color:var(--red);font-size:11px;cursor:pointer" onclick="delPbi(${p.id})">Excluir</button></div>`}).join('')}
+
+function renderPBI(){
+  const cy=cc(D),be=document.getElementById('pbi-banner-el'),re=document.getElementById('pbi-rec-el'),dots=document.getElementById('pbi-dots'),tl=document.getElementById('pbi-timeline'),dr=document.getElementById('pbi-detail-rows'),ld=document.getElementById('pbi-last-day');
+  const sd=document.getElementById('pbi-start-date');if(!sd.value)sd.value=new Date().toISOString().split('T')[0];
+  const cp=getAPbi(new Date().toISOString().split('T')[0]);if(cp&&!tempC.length)tempC=cp.combos.map(c=>[...c]);
+  renderPbiC();renderPbiHist();
+  if(!cy||!cy.entries.length){be.innerHTML='<div class="pbi-banner sem-dados"><div class="phase-icon">📝</div><div class="phase-name">Sem Dados</div><div class="phase-desc">Registre dias.</div></div>';re.innerHTML='';dots.innerHTML='';tl.innerHTML='';dr.innerHTML='';ld.textContent='';return}
+  const es=cy.entries,tot=es.length,last=es[tot-1],hp=D.pbiHistory.length>0,ai=es.findIndex(e=>e.symbol==='apice'),ha=ai>=0,pa=ha?tot-1-ai:0;
+  let pc,icon,name,desc;
+  if(last.symbol==='menstruacao'){pc='menstruacao';icon='🔴';name='Menstruação';desc='R1.';}
+  else if(ha&&pa>=3){pc='infertil-pos';icon='🔵';name='Infértil Pós-Ápice';desc=`Dia ${pa} pós-Ápice.`;}
+  else if(ha&&pa>0){pc='pos-apice';icon='⏳';name=`Pós-Ápice (Á+${pa})`;desc=`Faltam ${3-pa} dia(s).`;}
+  else if(last.symbol==='apice'){pc='apice';icon='🟡';name='Ápice';desc='Máxima fertilidade!';}
+  else if(last.symbol==='fertil'){pc='fertil';icon='🟡';name='Fértil';desc='Muco em mudança.';}
+  else if(last.symbol==='seca'){const m=isPbi(last);if(!hp){pc='sem-pbi';icon='🟤';name='PBI Não Definido';desc='Configure abaixo.';}else if(m){pc='pbi';icon='🟢';name='PBI';desc='Sem mudança. R2.';}else{pc='fertil';icon='⚠️';name='Possível Mudança';desc=last.sensacao+'/'+last.aparencia+' fora do PBI.';}}
+  else{pc='sem-dados';icon='❓';name='?';desc='';}
+  be.innerHTML=`<div class="pbi-banner ${pc}"><div class="phase-icon">${icon}</div><div class="phase-name">${name}</div><div class="phase-desc">${desc}</div></div>`;
+  const ori=getOrient(last,cy);re.innerHTML=ori?`<div class="pbi-rec"><h3>${ori.icon} Orientação</h3><p>${ori.text}</p></div>`:'';
+  const today=new Date().toISOString().split('T')[0];
+  let th='<div class="timeline-bar">';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai)c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';th+=`<div class="timeline-seg ${c}" style="width:${(100/tot).toFixed(2)}%"></div>`});th+='</div>';tl.innerHTML=th;
+  let dh='';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai&&e.symbol!=='apice')c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';dh+=`<div class="pbi-dot ${c}${e.date===today?' today':''}">${e.dia||i+1}</div>`});dots.innerHTML=dh;ld.textContent='Dia '+tot;
+  const ms=es.filter(e=>e.symbol==='menstruacao').length,ss=es.filter(e=>e.symbol==='seca').length,fs=es.filter(e=>e.symbol==='fertil').length;
+  let dd=`<div class="detail-row"><span class="detail-label">Dias</span><span class="detail-value">${tot}</span></div>`;
+  dd+=`<div class="detail-row"><span class="detail-label">Menstruação</span><span class="detail-value" style="color:var(--red)">${ms}</span></div>`;
+  dd+=`<div class="detail-row"><span class="detail-label">Secos</span><span class="detail-value" style="color:var(--green)">${ss}</span></div>`;
+  dd+=`<div class="detail-row"><span class="detail-label">Férteis</span><span class="detail-value" style="color:var(--yellow)">${fs+(ha?1:0)}</span></div>`;
+  if(ha){dd+=`<div class="detail-row"><span class="detail-label">Ápice</span><span class="detail-value" style="color:#E8A06B">Dia ${es[ai].dia||ai+1}</span></div>`;dd+=`<div class="detail-row"><span class="detail-label">Pós-Ápice</span><span class="detail-value" style="color:var(--blue)">${pa}</span></div>`}
+  dr.innerHTML=dd;
+}
+
+// CALENDAR
+let calY,calM;(()=>{const n=new Date();calY=n.getFullYear();calM=n.getMonth()})();
+function calNav(dir){calM+=dir;if(calM>11){calM=0;calY++}if(calM<0){calM=11;calY--}renderCal()}
+function allEntries(){const m={};D.cycles.forEach(cy=>{if(!cy.entries)return;const ai=cy.entries.findIndex(e=>e.symbol==='apice');cy.entries.forEach((e,i)=>{const en={...e,_cy:cy};if(ai>=0&&i>ai)en._pa=i-ai;m[e.date]=en})});return m}
+
+function renderCal(){
+  const g=document.getElementById('cal-grid'),t=document.getElementById('cal-month-title');
+  const mn=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  t.textContent=`${mn[calM]} ${calY}`;
+  const all=allEntries(),fd=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate(),today=new Date().toISOString().split('T')[0],hp=D.pbiHistory.length>0;
+  const si={menstruacao:'●',seca:'|',fertil:'○',apice:'✕'};let h='';
+  for(let i=0;i<fd;i++)h+='<div class="cal-day empty"></div>';
+  for(let d=1;d<=dim;d++){
+    const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,e=all[ds],isT=ds===today;
+    if(!e){h+=`<div class="cal-day t-none${isT?' t-today':''}" onclick="calClick('${ds}')"><div class="day-num">${d}</div></div>`;continue}
+    let tc=e.symbol;if(e._pa)tc='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)tc='mudanca';
+    const rule=e.regra||detectRule(e,e._cy).rule;
+    h+=`<div class="cal-day t-${tc}${isT?' t-today':''}" onclick="calClick('${ds}')">${e.relacao?'<span class="day-heart">♥</span>':''}<div class="day-num">${d}${e.dia?`<span class="day-cycle">D${e.dia}</span>`:''}</div><div class="day-stamp">${si[e.symbol]||''}</div><div class="day-info">${[e.sensacao,e.aparencia].filter(Boolean).join('/')}</div>${rule?`<span class="day-regra">${rule}</span>`:''}</div>`;
+  }
+  g.innerHTML=h;
+}
+
+function calClick(ds){for(const cy of D.cycles){if(!cy.entries)continue;const i=cy.entries.findIndex(e=>e.date===ds);if(i>=0){D.currentCycleIndex=D.cycles.indexOf(cy);openEditModal(cy.entries[i],i,cy);return}}document.getElementById('entry-date').value=ds;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelector('[data-tab="registro"]').classList.add('active');document.getElementById('sec-registro').classList.add('active');toast('Preencha o registro')}
+
+// EDIT MODAL
+function openEditModal(entry,idx,cycle){
+  if(!cycle)cycle=cc(D);const modal=document.getElementById('edit-modal'),content=document.getElementById('modal-content');
+  const ds=new Date(entry.date+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const si={menstruacao:'●',seca:'|',fertil:'○',apice:'✕'},sn={menstruacao:'Menstruação',seca:'Seca/Infértil',fertil:'Fértil',apice:'Ápice'};
+  const syms=['menstruacao','seca','fertil','apice'],sens=D.customSensacoes,apars=D.customAparencias;
+  const regras=['R1','R2','R3','RA',''];
+  const rule=detectRule(entry,cycle),orient=getOrient(entry,cycle);
+  let h=`<h2 style="font-family:'DM Serif Display',serif;font-size:20px;margin-bottom:4px">Dia ${entry.dia||(idx+1)}</h2><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">${ds}</p>`;
+  h+=`<div class="form-group"><label>Selo</label><div class="symbol-grid">${syms.map(s=>`<button class="symbol-btn ${entry.symbol===s?'selected':''}" data-symbol="${s}" onclick="mSym(this)"><div class="icon">${si[s]}</div><div class="label">${sn[s]}</div></button>`).join('')}</div></div>`;
+  h+=`<div class="form-group"><label>Sensação</label><div class="chip-group">${sens.map(s=>`<button class="chip ${entry.sensacao===s?'selected':''}" onclick="mChip(this,'sensacao')">${s}</button>`).join('')}</div></div>`;
+  h+=`<div class="form-group"><label>Aparência</label><div class="chip-group">${apars.map(a=>`<button class="chip ${entry.aparencia===a?'selected':''}" onclick="mChip(this,'aparencia')">${a}</button>`).join('')}</div></div>`;
+  h+=`<div class="form-group"><label>Regra MOB</label><div class="regra-group">${regras.map(r=>`<button class="regra-chip ${(entry.regra||'')===(r||'')?'selected':''}" data-regra="${r}" onclick="mRegra(this)">${r||'Nenhuma'}</button>`).join('')}</div></div>`;
+  h+=`<div class="form-group"><div class="check-row"><input type="checkbox" id="m-rel" ${entry.relacao?'checked':''}><label for="m-rel">Relação ♥</label></div></div>`;
+  h+=`<div class="form-group"><label>Observações</label><textarea class="input" id="m-notes">${entry.notes||''}</textarea></div>`;
+  if(rule.rule)h+=`<div class="rule-box ${rule.cls}"><h4>Regra: ${rule.rule}</h4><p>${rule.desc}</p></div>`;
+  if(orient)h+=`<div class="orientation-box"><h4>${orient.icon} Orientação</h4><p>${orient.text}</p></div>`;
+  h+=`<button class="btn-primary" onclick="saveModal(${idx})">Salvar</button><button class="btn-outline" onclick="delEntry(${idx})">Excluir</button>`;
+  content.innerHTML=h;content.dataset.sym=entry.symbol;content.dataset.sens=entry.sensacao||'';content.dataset.apar=entry.aparencia||'';content.dataset.regra=entry.regra||'';
+  modal.classList.add('show');
+}
+function mSym(b){b.closest('.symbol-grid').querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');document.getElementById('modal-content').dataset.sym=b.dataset.symbol}
+function mChip(c,g){c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');document.getElementById('modal-content').dataset[g==='sensacao'?'sens':'apar']=c.textContent}
+function mRegra(b){b.parentElement.querySelectorAll('.regra-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');document.getElementById('modal-content').dataset.regra=b.dataset.regra}
+function saveModal(idx){const c=document.getElementById('modal-content'),cy=cc(D);if(!cy)return;const e=cy.entries[idx];if(!e)return;e.symbol=c.dataset.sym;e.sensacao=c.dataset.sens;e.aparencia=c.dataset.apar;e.regra=c.dataset.regra;e.relacao=document.getElementById('m-rel').checked;e.notes=document.getElementById('m-notes').value;save(D);document.getElementById('edit-modal').classList.remove('show');toast('Atualizado!');renderCal();autoSync()}
+document.getElementById('edit-modal').addEventListener('click',e=>{if(e.target.id==='edit-modal')e.target.classList.remove('show')});
+function delEntry(idx){if(confirm('Excluir?')){cc(D).entries.splice(idx,1);save(D);document.getElementById('edit-modal').classList.remove('show');renderCal();toast('Excluído');autoSync()}}
+
+// CICLOS
+function renderCiclos(){renderObjCard();renderObjHist();renderCyclesList()}
+function renderCyclesList(){const l=document.getElementById('cycles-list');if(!D.cycles.length){l.innerHTML='<div class="empty-state"><div class="emoji">🌱</div><p>Nenhum ciclo.</p></div>';return}l.innerHTML=D.cycles.map((c,i)=>{const d=c.entries?c.entries.length:0,ic=i===D.currentCycleIndex,s=c.startDate?new Date(c.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}):'';return`<div class="cycle-list-item" onclick="switchCycle(${i})" style="${ic?'border-left:3px solid var(--accent);':''}"><div class="cycle-info"><h3>${c.name}${ic?' ←':''}</h3><p>Início: ${s}</p></div><div class="cycle-days-badge">${d} dias</div></div>`}).join('')}
+function switchCycle(i){D.currentCycleIndex=i;save(D);renderCiclos();toast(D.cycles[i].name);autoFillDia()}
+function newCycle(){const n=D.cycles.length+1;D.cycles.push({id:Date.now(),name:'Ciclo '+n,startDate:new Date().toISOString().split('T')[0],entries:[]});D.currentCycleIndex=D.cycles.length-1;save(D);renderCiclos();autoFillDia();toast('Novo ciclo!');autoSync()}
+
+// EXPORT CSV
+function exportCSV(){const c=cc(D);if(!c||!c.entries.length){toast('Sem dados');return}let csv='Dia,Data,Símbolo,Sensação,Aparência,Regra,Relação,Obs\n';c.entries.forEach((e,i)=>{const r=e.regra||detectRule(e,c).rule;csv+=`${e.dia||i+1},${e.date},${e.symbol},${e.sensacao||''},${e.aparencia||''},${r},${e.relacao?'Sim':'Não'},"${(e.notes||'').replace(/"/g,'""')}"\n`});const b=new Blob([csv],{type:'text/csv;charset=utf-8;'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=c.name.replace(/\s/g,'_')+'.csv';a.click();URL.revokeObjectURL(u);toast('CSV exportado!')}
+
+// EXPORT PDF (CENPLAFAM format)
+function openPdfModal(){
+  const cy=cc(D);if(!cy||!cy.entries.length){toast('Sem dados');return}
+  const es=cy.entries;
+  document.getElementById('pdf-start').value=es[0].date;
+  document.getElementById('pdf-end').value=es[es.length-1].date;
+  updatePdfPreview();
+  document.getElementById('pdf-start').onchange=updatePdfPreview;
+  document.getElementById('pdf-end').onchange=updatePdfPreview;
+  document.getElementById('pdf-modal').classList.add('show');
+}
+function updatePdfPreview(){
+  const s=document.getElementById('pdf-start').value,e=document.getElementById('pdf-end').value;
+  const cy=cc(D);if(!cy)return;
+  const count=cy.entries.filter(x=>x.date>=s&&x.date<=e).length;
+  const pages=Math.ceil(Math.ceil(count/35)/3);
+  document.getElementById('pdf-preview').textContent=count+' dias selecionados — '+Math.max(1,pages)+' página(s) no PDF.';
+}
+document.getElementById('pdf-modal').addEventListener('click',e=>{if(e.target.id==='pdf-modal')e.target.classList.remove('show')});
+
+function exportPDF(){
+  document.getElementById('pdf-modal').classList.remove('show');
+  const cy=cc(D);if(!cy||!cy.entries.length){toast('Sem dados');return}
+  const startDate=document.getElementById('pdf-start').value;
+  const endDate=document.getElementById('pdf-end').value;
+  if(!startDate||!endDate){toast('Selecione as datas');return}
+  const entries=cy.entries.filter(e=>e.date>=startDate&&e.date<=endDate);
+  if(!entries.length){toast('Nenhum registro no periodo');return}
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const pw=297,ph=210,margin=8;
+  const cols=35,rowsPerPage=3;
+  const labelW=28;
+  const colW=(pw-margin*2-labelW)/cols;
+  const blockH=(ph-margin*2-14)/rowsPerPage;
+  const rh=5; // header row height
+
+  const totalDays=entries.length;
+  const totalRows=Math.ceil(totalDays/cols);
+  const totalPages=Math.ceil(totalRows/rowsPerPage);
+
+  function drawStamp(e,cx,cy,r){
+    if(e.symbol==='menstruacao'){
+      doc.setFillColor(212,96,90);doc.circle(cx,cy,r,'F');
+    }else if(e.symbol==='seca'){
+      doc.setFillColor(123,166,138);doc.circle(cx,cy,r,'F');
+      // White vertical line inside
+      doc.setDrawColor(255,255,255);doc.setLineWidth(0.6);
+      doc.line(cx,cy-r*0.6,cx,cy+r*0.6);
+    }else if(e.symbol==='fertil'){
+      doc.setFillColor(255,255,255);doc.setDrawColor(100);doc.setLineWidth(0.3);
+      doc.circle(cx,cy,r,'FD');
+    }else if(e.symbol==='apice'){
+      doc.setFillColor(232,201,107);doc.circle(cx,cy,r,'F');
+      // Red X inside
+      doc.setDrawColor(200,50,50);doc.setLineWidth(0.5);
+      const s=r*0.5;
+      doc.line(cx-s,cy-s,cx+s,cy+s);
+      doc.line(cx+s,cy-s,cx-s,cy+s);
+    }
+  }
+
+  for(let page=0;page<totalPages;page++){
+    if(page>0)doc.addPage();
+    // Title
+    doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(0);
+    doc.text('GRAFICO CICLO MENSTRUAL',pw/2,margin+5,{align:'center'});
+    doc.setFontSize(8);doc.setFont('helvetica','normal');
+    doc.text('Confederacao Nacional de Planejamento Natural da Familia',pw/2,margin+9,{align:'center'});
+    doc.setFontSize(7);
+    const rangeStr=new Date(startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' a '+new Date(endDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    doc.text(cy.name+' | '+rangeStr,pw/2,margin+13,{align:'center'});
+
+    const startY=margin+16;
+
+    for(let row=0;row<rowsPerPage;row++){
+      const globalRow=page*rowsPerPage+row;
+      if(globalRow>=totalRows)break;
+      const startIdx=globalRow*cols;
+      const y=startY+row*blockH;
+      const stampAreaY=y+rh*2;
+      const stampAreaH=blockH-rh*3;
+
+      // Outer border
+      doc.setDrawColor(0);doc.setLineWidth(0.4);
+      doc.rect(margin,y,labelW+cols*colW,blockH);
+
+      // Column dividers
+      doc.setDrawColor(150);doc.setLineWidth(0.15);
+      for(let c=0;c<=cols;c++){
+        const x=margin+labelW+c*colW;
+        doc.line(x,y,x,y+blockH);
+      }
+
+      // Label column divider (thicker)
+      doc.setDrawColor(0);doc.setLineWidth(0.3);
+      doc.line(margin+labelW,y,margin+labelW,y+blockH);
+
+      // === Row 1: Dia do Ciclo ===
+      doc.setDrawColor(0);doc.setLineWidth(0.2);
+      doc.line(margin,y+rh,margin+labelW+cols*colW,y+rh);
+      doc.setFontSize(6);doc.setFont('helvetica','bold');doc.setTextColor(0);
+      doc.text('Dia do Ciclo',margin+2,y+rh-1.5);
+      for(let c=0;c<cols;c++){
+        const dayIdx=startIdx+c;
+        if(dayIdx>=totalDays)continue;
+        const e=entries[dayIdx];
+        const x=margin+labelW+c*colW;
+        doc.setFontSize(6);doc.setFont('helvetica','bold');
+        doc.text(String(e.dia||dayIdx+1).padStart(2,'0'),x+colW/2,y+rh-1.5,{align:'center'});
+      }
+
+      // === Row 2: Dia do mes (dd/MM) ===
+      doc.line(margin,y+rh*2,margin+labelW+cols*colW,y+rh*2);
+      doc.setFontSize(5.5);doc.setFont('helvetica','bold');
+      doc.text('Dia do mes',margin+2,y+rh*2-1.5);
+      for(let c=0;c<cols;c++){
+        const dayIdx=startIdx+c;
+        if(dayIdx>=totalDays)continue;
+        const e=entries[dayIdx];
+        const x=margin+labelW+c*colW;
+        const dt=new Date(e.date+'T12:00:00');
+        const ddmm=String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0');
+        doc.setFontSize(5);doc.setFont('helvetica','normal');
+        doc.text(ddmm,x+colW/2,y+rh*2-1.5,{align:'center'});
+      }
+
+      // === Main area: Stamps + vertical text ===
+      // Label
+      doc.setFontSize(5);doc.setFont('helvetica','normal');doc.setTextColor(0);
+      doc.text('Sensacao/',margin+2,stampAreaY+stampAreaH/2-4);
+      doc.text('Aparencia',margin+2,stampAreaY+stampAreaH/2-1);
+      doc.text('do fluxo',margin+2,stampAreaY+stampAreaH/2+2);
+
+      for(let c=0;c<cols;c++){
+        const dayIdx=startIdx+c;
+        if(dayIdx>=totalDays)continue;
+        const e=entries[dayIdx];
+        const x=margin+labelW+c*colW;
+
+        // Background fill
+        let bgColor;
+        if(e.symbol==='menstruacao')bgColor=[251,234,233];
+        else if(e.symbol==='seca')bgColor=[232,242,235];
+        else if(e.symbol==='fertil')bgColor=[255,248,225];
+        else if(e.symbol==='apice')bgColor=[255,232,204];
+        else bgColor=[255,255,255];
+        doc.setFillColor(bgColor[0],bgColor[1],bgColor[2]);
+        doc.rect(x+0.1,stampAreaY+0.1,colW-0.2,stampAreaH-0.2,'F');
+
+        // Draw stamp shape at top of cell
+        const stampCX=x+colW/2;
+        const stampCY=stampAreaY+5;
+        const stampR=2.2;
+        drawStamp(e,stampCX,stampCY,stampR);
+
+        // Relacao marker
+        if(e.relacao){
+          doc.setFillColor(201,123,107);
+          doc.circle(x+colW-2,stampAreaY+2.2,1.3,'F');
+          doc.setFontSize(5);doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');
+          doc.text('R',x+colW-2,stampAreaY+2.8,{align:'center'});
+        }
+
+        // Vertical text: sensacao / aparencia
+        doc.setTextColor(50);doc.setFont('helvetica','normal');
+        const sens=e.sensacao||'';
+        const apar=e.aparencia||'';
+        const fullText=sens+(apar?' / '+apar:'');
+
+        // Write vertically (bottom to top), larger font
+        doc.setFontSize(7.5);
+        const textX=x+colW/2+0.8;
+        const textY=stampAreaY+stampAreaH-2;
+        doc.text(fullText,textX,textY,{angle:90,maxWidth:stampAreaH-12});
+      }
+
+      // === Row 4: Regra MOB ===
+      const regraY=y+blockH-rh;
+      doc.setDrawColor(0);doc.setLineWidth(0.2);
+      doc.line(margin,regraY,margin+labelW+cols*colW,regraY);
+      doc.setFontSize(5.5);doc.setFont('helvetica','bold');doc.setTextColor(0);
+      doc.text('Regra MOB',margin+2,regraY+rh-1.5);
+      for(let c=0;c<cols;c++){
+        const dayIdx=startIdx+c;
+        if(dayIdx>=totalDays)continue;
+        const e=entries[dayIdx];
+        const x=margin+labelW+c*colW;
+        const rule=e.regra||detectRule(e,cy).rule;
+        doc.setFontSize(5.5);doc.setFont('helvetica','bold');doc.setTextColor(80);
+        doc.text(rule,x+colW/2,regraY+rh-1.5,{align:'center'});
+      }
+      doc.setTextColor(0);
+    }
+  }
+
+  const fileName=cy.name.replace(/\s/g,'_')+'_'+startDate+'_a_'+endDate+'.pdf';
+  const pdfBlob=doc.output('blob');
+  const blobUrl=URL.createObjectURL(pdfBlob);
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    // Open in new tab - user can save/share from there
+    window.open(blobUrl,'_blank');
+  }else{
+    // Desktop: direct download
+    const a=document.createElement('a');a.href=blobUrl;
+    a.download=fileName;
+    a.click();
+  }
+  setTimeout(()=>URL.revokeObjectURL(blobUrl),10000);
+  toast('PDF gerado!');
+}
+
+// ===== CLOUD SYNC =====
+const SYNC_URL_KEY='mob_sync_url';
+function getSyncUrl(){return localStorage.getItem(SYNC_URL_KEY)||''}
+function saveSyncUrl(){const url=document.getElementById('sync-url').value.trim();if(!url){toast('Cole a URL');return}localStorage.setItem(SYNC_URL_KEY,url);toast('URL salva!');syncNow()}
+
+function setSyncStatus(msg,ok){const el=document.getElementById('sync-status');el.textContent=msg;el.style.color=ok?'#a0ffb0':'#ffb0a0'}
+function setSyncLog(msg){const el=document.getElementById('sync-log');if(el)el.textContent=msg}
+
+async function syncNow(){
+  const url=getSyncUrl();
+  if(!url){setSyncStatus('Offline (sem URL)',false);return}
+  setSyncStatus('Sincronizando...',true);setSyncLog('Enviando dados...');
+  try{
+    // Remove migration flags and internal fields before sending
+    const sendData=JSON.parse(JSON.stringify(D));
+    delete sendData._migrationDateShiftDone;
+    delete sendData._migrationChart2Done;
+    
+    const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'sync',data:sendData}),redirect:'follow'});
+    const result=await resp.json();
+    if(result.success&&result.data){
+      // Update local with merged data
+      const merged=result.data;
+      // Preserve migration flags locally
+      merged._migrationDateShiftDone=true;
+      merged._migrationChart2Done=true;
+      // Preserve custom lists if not in merged
+      if(!merged.customSensacoes)merged.customSensacoes=D.customSensacoes;
+      if(!merged.customAparencias)merged.customAparencias=D.customAparencias;
+      D=merged;
+      save(D);
+      setSyncStatus('Sincronizado ✓',true);
+      setSyncLog('Última sync: '+new Date().toLocaleTimeString('pt-BR'));
+      // Refresh current view
+      renderRegChips();
+      const activeTab=document.querySelector('.tab.active');
+      if(activeTab){
+        if(activeTab.dataset.tab==='grafico')renderCal();
+        if(activeTab.dataset.tab==='pbi')renderPBI();
+        if(activeTab.dataset.tab==='ciclos')renderCiclos();
+      }
+    }else{
+      setSyncStatus('Erro na sync',false);
+      setSyncLog('Erro: '+(result.error||'resposta inválida'));
+    }
+  }catch(err){
+    setSyncStatus('Erro de conexão',false);
+    setSyncLog('Erro: '+err.message);
+  }
+}
+
+// Auto-sync after saves
+function autoSync(){const url=getSyncUrl();if(url)setTimeout(syncNow,500)}
+
+// Load sync URL on init
+(function initSync(){
+  const url=getSyncUrl();
+  const inp=document.getElementById('sync-url');
+  if(inp&&url)inp.value=url;
+  if(url){syncNow()}else{setSyncStatus('Offline',false)}
+})();
+
+function toast(msg){const t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// ===== CLOUD SYNC =====
+const API_URL='https://script.google.com/macros/s/AKfycbzu7_IG0NqFFPBn7Z1KidMaavHZVUQElTvRWcWpucuQgBNiqRfghBpWP8zMDqrJbhcT2A/exec';
+
+function setSyncStatus(icon,text){document.getElementById('sync-status').textContent=icon+' '+text}
+
+async function cloudSave(){
+  setSyncStatus('🔄','Salvando...');
+  try{
+    const data=localStorage.getItem(SK)||'{}';
+    const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',data:data}),headers:{'Content-Type':'text/plain'}});
+    const json=await res.json();
+    if(json.success){
+      setSyncStatus('☁️✅','Sincronizado');
+      D._lastSync=new Date().toISOString();
+      localStorage.setItem(SK,JSON.stringify(D));
+    }else{
+      setSyncStatus('⚠️','Erro ao salvar');
+    }
+  }catch(e){
+    setSyncStatus('📴','Offline - salvo local');
+  }
+}
+
+async function cloudLoad(){
+  setSyncStatus('🔄','Carregando...');
+  try{
+    const res=await fetch(API_URL);
+    const json=await res.json();
+    if(json.success&&json.data&&json.data!=='{}'){
+      const cloudData=JSON.parse(json.data);
+      // Se nuvem tem dados, usa nuvem como fonte de verdade
+      if(cloudData.cycles&&cloudData.cycles.length>0){
+        // Preservar flags de migracao local
+        cloudData._migrationDateShiftDone=true;
+        cloudData._migrationChart2Done=true;
+        D=cloudData;
+        if(!D.pbiHistory)D.pbiHistory=[];
+        if(!D.objHistory)D.objHistory=[];
+        if(!D.customSensacoes)D.customSensacoes=[...defaultSens];
+        if(!D.customAparencias)D.customAparencias=[...defaultApar];
+        localStorage.setItem(SK,JSON.stringify(D));
+        renderRegChips();
+        setSyncStatus('☁️✅','Sincronizado');
+        // Refresh current tab
+        const activeTab=document.querySelector('.tab.active');
+        if(activeTab){
+          const tab=activeTab.dataset.tab;
+          if(tab==='grafico')renderCal();
+          if(tab==='ciclos')renderCiclos();
+          if(tab==='pbi')renderPBI();
+        }
+        return;
+      }
+    }
+    // Nuvem vazia - fazer upload dos dados locais
+    if(D.cycles&&D.cycles.length>0){
+      await cloudSave();
+      setSyncStatus('☁️✅','Dados enviados');
+    }else{
+      setSyncStatus('☁️','Sem dados');
+    }
+  }catch(e){
+    setSyncStatus('📴','Offline');
+  }
+}
+
+async function manualSync(){
+  setSyncStatus('🔄','Sincronizando...');
+  await cloudLoad();
+  toast('Sincronizado!');
+}
+
+// Override save to also sync to cloud
+const _originalSave=save;
+save=function(d){
+  _originalSave(d);
+  // Sync to cloud in background (don't await)
+  cloudSave().catch(()=>{});
+};
+
+// Initial cloud load (after local data is ready)
+setTimeout(()=>cloudLoad(),500);
+
+// Sync when app comes back to foreground
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)cloudLoad().catch(()=>{});
+});
+
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW registrado')).catch(e=>console.log('SW erro:',e));
+}
+</script>
+</body>
+</html>
