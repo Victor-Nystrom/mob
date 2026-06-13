@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mob-v1';
+const CACHE_NAME = 'mob-v2';
 const ASSETS = [
   './',
   './index.html',
