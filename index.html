@@ -37,6 +37,7 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 .btn-primary:active{transform:scale(.98)}
 .btn-green{width:100%;padding:14px;background:var(--green);color:#fff;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
 .btn-outline{width:100%;padding:12px;background:none;border:1.5px solid var(--red);border-radius:10px;color:var(--red);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
+.btn-outline-accent{width:100%;padding:12px;background:none;border:1.5px solid var(--text-muted);border-radius:10px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
 .btn-dashed{width:100%;padding:14px;background:var(--card);border:2px dashed var(--border);border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--accent);cursor:pointer;margin-bottom:16px}
 .btn-small{padding:10px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
 .btn-pdf{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
@@ -74,15 +75,17 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
 .cal-weekday{text-align:center;font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;padding:6px 0}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
-.cal-day{min-height:80px;border-radius:8px;padding:4px;cursor:pointer;position:relative;overflow:hidden;border:1.5px solid transparent}
+.cal-day{min-height:90px;border-radius:8px;padding:3px 4px;cursor:pointer;position:relative;overflow:hidden;border:1.5px solid transparent;display:flex;flex-direction:column}
 .cal-day:active{transform:scale(.96)}
 .cal-day.empty{cursor:default;background:transparent;border:none;min-height:0}
-.cal-day .day-num{font-size:11px;font-weight:700;margin-bottom:2px;display:flex;justify-content:space-between}
-.cal-day .day-cycle{font-size:8px;color:rgba(0,0,0,.4);font-weight:600}
-.cal-day .day-info{font-size:8px;line-height:1.3;color:rgba(0,0,0,.5)}
-.cal-day .day-stamp{font-size:12px;font-weight:800;text-align:center;margin:1px 0}
-.cal-day .day-heart{position:absolute;top:3px;right:4px;font-size:9px;color:var(--accent)}
-.cal-day .day-regra{font-size:7px;font-weight:700;color:rgba(0,0,0,.35);position:absolute;bottom:2px;right:4px}
+.cal-day .day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1px}
+.cal-day .day-num{font-size:11px;font-weight:700}
+.cal-day .day-cycle{font-size:7px;color:rgba(0,0,0,.35);font-weight:600}
+.cal-day .day-heart{font-size:8px;color:var(--accent);font-weight:700}
+.cal-day .day-stamp{font-size:11px;font-weight:800;text-align:center;margin:2px 0 1px}
+.cal-day .day-sens{font-size:8px;line-height:1.2;color:rgba(0,0,0,.55);text-align:center;font-weight:500}
+.cal-day .day-apar{font-size:7px;line-height:1.2;color:rgba(0,0,0,.4);text-align:center}
+.cal-day .day-regra{font-size:7px;font-weight:700;color:rgba(0,0,0,.3);text-align:center;margin-top:auto}
 .cal-day.t-menstruacao{background:var(--red-light);border-color:var(--red)}
 .cal-day.t-seca{background:var(--green-light);border-color:var(--green)}
 .cal-day.t-fertil{background:var(--yellow-light);border-color:var(--yellow)}
@@ -265,20 +268,6 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 <div class="card"><h2>Histórico de Objetivos</h2><div id="obj-history-list"></div></div>
 <button class="btn-dashed" onclick="newCycle()">+ Iniciar Novo Ciclo</button>
 <div id="cycles-list"></div>
-
-<!-- SYNC CONFIG -->
-<div class="card" style="margin-top:16px">
-<h2>☁️ Sincronização</h2>
-<p style="margin-bottom:12px">Cole a URL do Google Apps Script para sincronizar entre celulares.</p>
-<div class="form-group"><label>URL do Apps Script</label>
-<input type="url" class="input" id="sync-url" placeholder="https://script.google.com/macros/s/...">
-</div>
-<div style="display:flex;gap:8px">
-<button class="btn-green" onclick="saveSyncUrl()" style="flex:1">Salvar URL</button>
-<button class="btn-small" onclick="syncNow()" style="flex:1;background:var(--blue)">Sincronizar Agora</button>
-</div>
-<div id="sync-log" style="margin-top:12px;font-size:11px;color:var(--text-muted)"></div>
-</div>
 </div>
 
 <!-- INFO -->
@@ -309,7 +298,7 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 <div class="form-group"><label>Data Fim</label><input type="date" class="input" id="pdf-end"></div>
 <div id="pdf-preview" style="font-size:12px;color:var(--text-muted);margin-bottom:12px"></div>
 <button class="btn-primary" onclick="exportPDF()" style="background:var(--accent)">Gerar PDF</button>
-<button class="btn-outline-accent" onclick="document.getElementById('pdf-modal').classList.remove('show')" style="border-color:var(--text-muted);color:var(--text-muted)">Cancelar</button>
+<button class="btn-outline-accent" onclick="document.getElementById('pdf-modal').classList.remove('show')">Cancelar</button>
 </div></div>
 <div class="modal-overlay" id="edit-modal"><div class="modal"><div class="modal-handle"></div><div id="modal-content"></div></div></div>
 <div class="toast" id="toast-el"></div>
@@ -368,7 +357,7 @@ function seedData(){
   const ex=load();if(ex.cycles.length>0&&ex.cycles[0].entries&&ex.cycles[0].entries.length>=53)return ex;
   localStorage.removeItem(SK);
   const E=[
-    {id:1,date:"2026-01-29",dia:1,symbol:"seca",sensacao:"Úmida",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
+    {id:1,date:"2026-01-29",dia:1,symbol:"seca",sensacao:"Umida",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
     {id:2,date:"2026-01-30",dia:2,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
     {id:3,date:"2026-01-31",dia:3,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
     {id:4,date:"2026-02-01",dia:4,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:true,notes:""},
@@ -379,9 +368,9 @@ function seedData(){
     {id:9,date:"2026-02-06",dia:9,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
     {id:10,date:"2026-02-07",dia:10,symbol:"seca",sensacao:"Seca",aparencia:"Catarro",regra:"R3",relacao:false,notes:""},
     {id:11,date:"2026-02-08",dia:11,symbol:"seca",sensacao:"Seca",aparencia:"Catarro",regra:"R3",relacao:false,notes:""},
-    {id:12,date:"2026-02-09",dia:12,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
-    {id:13,date:"2026-02-10",dia:13,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
-    {id:14,date:"2026-02-11",dia:14,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:12,date:"2026-02-09",dia:12,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:13,date:"2026-02-10",dia:13,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:14,date:"2026-02-11",dia:14,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
     {id:15,date:"2026-02-12",dia:15,symbol:"apice",sensacao:"Lubrificada",aparencia:"Creme",regra:"RA",relacao:false,notes:"Ápice marcado pela instrutora."},
     {id:16,date:"2026-02-13",dia:16,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"RA",relacao:false,notes:""},
     {id:17,date:"2026-02-14",dia:17,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"RA",relacao:false,notes:""},
@@ -390,10 +379,10 @@ function seedData(){
     {id:20,date:"2026-02-17",dia:20,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:true,notes:""},
     {id:21,date:"2026-02-18",dia:21,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
     {id:22,date:"2026-02-19",dia:22,symbol:"seca",sensacao:"Seca",aparencia:"Viscoso",regra:"R2",relacao:false,notes:""},
-    {id:23,date:"2026-02-20",dia:23,symbol:"seca",sensacao:"Úmida",aparencia:"Creme",regra:"R3",relacao:false,notes:""},
-    {id:24,date:"2026-02-21",dia:24,symbol:"seca",sensacao:"Úmida",aparencia:"Creme",regra:"R3",relacao:false,notes:""},
+    {id:23,date:"2026-02-20",dia:23,symbol:"seca",sensacao:"Umida",aparencia:"Creme",regra:"R3",relacao:false,notes:""},
+    {id:24,date:"2026-02-21",dia:24,symbol:"seca",sensacao:"Umida",aparencia:"Creme",regra:"R3",relacao:false,notes:""},
     {id:25,date:"2026-02-22",dia:25,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
-    {id:26,date:"2026-02-23",dia:26,symbol:"seca",sensacao:"Úmida",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
+    {id:26,date:"2026-02-23",dia:26,symbol:"seca",sensacao:"Umida",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
     {id:27,date:"2026-02-24",dia:27,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
     {id:28,date:"2026-02-25",dia:28,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
     {id:29,date:"2026-02-26",dia:29,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
@@ -413,7 +402,7 @@ function seedData(){
     {id:43,date:"2026-03-12",dia:43,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
     {id:44,date:"2026-03-13",dia:44,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
     {id:45,date:"2026-03-14",dia:45,symbol:"seca",sensacao:"Seca",aparencia:"Creme",regra:"R2",relacao:false,notes:""},
-    {id:46,date:"2026-03-15",dia:46,symbol:"fertil",sensacao:"Úmida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
+    {id:46,date:"2026-03-15",dia:46,symbol:"fertil",sensacao:"Umida",aparencia:"Viscoso",regra:"R3",relacao:false,notes:""},
     {id:47,date:"2026-03-16",dia:47,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
     {id:48,date:"2026-03-17",dia:48,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R3",relacao:false,notes:""},
     {id:49,date:"2026-03-18",dia:49,symbol:"seca",sensacao:"Seca",aparencia:"Nada",regra:"R2",relacao:false,notes:""},
@@ -579,7 +568,7 @@ function saveEntry(){
   const ei=cycle.entries.findIndex(e=>e.date===date);
   if(ei>=0)cycle.entries[ei]=entry;else cycle.entries.push(entry);
   cycle.entries.sort((a,b)=>a.date.localeCompare(b.date));
-  save(D);toast('Salvo! ✓');autoSync();
+  save(D);toast('Salvo! ✓');
   fSym='';fSens='';fApar='';fRegra='';
   document.querySelectorAll('.symbol-btn,.chip,.regra-chip').forEach(b=>b.classList.remove('selected'));
   document.getElementById('relacao-check').checked=false;document.getElementById('entry-notes').value='';
@@ -595,7 +584,7 @@ document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=
 })});
 
 // OBJECTIVE
-function saveObj(){const t=document.getElementById('obj-select').value,sd=document.getElementById('obj-start-date').value;if(!sd){toast('Data');return}D.objHistory=D.objHistory.filter(o=>o.startDate!==sd);D.objHistory.push({id:Date.now(),type:t,startDate:sd});D.objHistory.sort((a,b)=>a.startDate.localeCompare(b.startDate));save(D);toast('Objetivo salvo!');renderCiclos();autoSync()}
+function saveObj(){const t=document.getElementById('obj-select').value,sd=document.getElementById('obj-start-date').value;if(!sd){toast('Data');return}D.objHistory=D.objHistory.filter(o=>o.startDate!==sd);D.objHistory.push({id:Date.now(),type:t,startDate:sd});D.objHistory.sort((a,b)=>a.startDate.localeCompare(b.startDate));save(D);toast('Objetivo salvo!');renderCiclos()}
 function delObj(id){if(!confirm('Excluir?'))return;D.objHistory=D.objHistory.filter(o=>o.id!==id);save(D);renderCiclos()}
 function renderObjCard(){const el=document.getElementById('obj-current-card'),obj=getAObj(new Date().toISOString().split('T')[0]);if(!obj){el.innerHTML='<div class="obj-card nenhum"><div class="obj-icon">🎯</div><div class="obj-title">Sem Objetivo</div><div class="obj-desc">Defina abaixo.</div></div>';return}el.innerHTML=obj.type==='evitar'?'<div class="obj-card evitar"><div class="obj-icon">🛡️</div><div class="obj-title">Evitando Gravidez</div></div>':'<div class="obj-card engravidar"><div class="obj-icon">💚</div><div class="obj-title">Buscando Gravidez</div></div>'}
 function renderObjHist(){const el=document.getElementById('obj-history-list');if(!D.objHistory.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nenhum.</p>';return}const today=new Date().toISOString().split('T')[0],act=getAObj(today);el.innerHTML=D.objHistory.map(o=>{const cur=act&&act.id===o.id,ds=new Date(o.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'}),lb=o.type==='evitar'?'Evitar':'Engravidar';return`<div class="obj-history-item ${cur?'current':''}"><span class="obj-badge ${o.type}">${cur?'ATIVO':lb}</span><h4 style="font-size:13px;font-weight:600">${lb}</h4><p style="font-size:12px;color:var(--text-muted)">Desde ${ds}</p><button style="margin-top:6px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:none;color:var(--red);font-size:11px;cursor:pointer" onclick="delObj(${o.id})">Excluir</button></div>`}).join('')}
@@ -605,7 +594,7 @@ let tempC=[];
 function addPbiCombo(){const s=document.getElementById('pbi-add-s').value,a=document.getElementById('pbi-add-a').value;if(!s||!a){toast('Selecione ambos');return}if(tempC.some(c=>c[0]===s&&c[1]===a)){toast('Já existe');return}tempC.push([s,a]);renderPbiC();document.getElementById('pbi-add-s').value='';document.getElementById('pbi-add-a').value=''}
 function rmPbiC(i){tempC.splice(i,1);renderPbiC()}
 function renderPbiC(){const l=document.getElementById('pbi-combos-list');if(!tempC.length){l.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nenhuma definida.</p>';return}l.innerHTML=tempC.map((c,i)=>`<div class="pbi-combo">🟢 ${c[0]} / ${c[1]}<span class="remove-combo" onclick="rmPbiC(${i})">×</span></div>`).join('')}
-function savePbiConfig(){const sd=document.getElementById('pbi-start-date').value;if(!sd){toast('Data');return}if(!tempC.length){toast('Adicione combinações');return}D.pbiHistory=D.pbiHistory.filter(p=>p.startDate!==sd);D.pbiHistory.push({id:Date.now(),startDate:sd,combos:tempC.map(c=>[...c])});D.pbiHistory.sort((a,b)=>a.startDate.localeCompare(b.startDate));save(D);toast('PBI salvo!');renderPBI();autoSync()}
+function savePbiConfig(){const sd=document.getElementById('pbi-start-date').value;if(!sd){toast('Data');return}if(!tempC.length){toast('Adicione combinações');return}D.pbiHistory=D.pbiHistory.filter(p=>p.startDate!==sd);D.pbiHistory.push({id:Date.now(),startDate:sd,combos:tempC.map(c=>[...c])});D.pbiHistory.sort((a,b)=>a.startDate.localeCompare(b.startDate));save(D);toast('PBI salvo!');renderPBI()}
 function delPbi(id){if(!confirm('Excluir?'))return;D.pbiHistory=D.pbiHistory.filter(p=>p.id!==id);save(D);renderPBI()}
 function renderPbiHist(){const l=document.getElementById('pbi-history-list');if(!D.pbiHistory.length){l.innerHTML='<p style="color:var(--text-muted);font-size:13px">Nenhum.</p>';return}const today=new Date().toISOString().split('T')[0],act=getAPbi(today);l.innerHTML=D.pbiHistory.map(p=>{const cur=act&&act.id===p.id,ds=new Date(p.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});return`<div class="pbi-history-item ${cur?'current':''}">${cur?'<span class="pbi-history-badge">ATIVO</span>':''}<h4>Desde ${ds}</h4><p>${p.combos.map(c=>c[0]+' / '+c[1]).join(' • ')}</p><button style="margin-top:6px;padding:4px 10px;border:1px solid var(--red);border-radius:6px;background:none;color:var(--red);font-size:11px;cursor:pointer" onclick="delPbi(${p.id})">Excluir</button></div>`}).join('')}
 
@@ -652,10 +641,18 @@ function renderCal(){
   for(let i=0;i<fd;i++)h+='<div class="cal-day empty"></div>';
   for(let d=1;d<=dim;d++){
     const ds=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`,e=all[ds],isT=ds===today;
-    if(!e){h+=`<div class="cal-day t-none${isT?' t-today':''}" onclick="calClick('${ds}')"><div class="day-num">${d}</div></div>`;continue}
+    if(!e){h+=`<div class="cal-day t-none${isT?' t-today':''}" onclick="calClick('${ds}')"><div class="day-header"><span class="day-num">${d}</span></div></div>`;continue}
     let tc=e.symbol;if(e._pa)tc='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)tc='mudanca';
     const rule=e.regra||detectRule(e,e._cy).rule;
-    h+=`<div class="cal-day t-${tc}${isT?' t-today':''}" onclick="calClick('${ds}')">${e.relacao?'<span class="day-heart">♥</span>':''}<div class="day-num">${d}${e.dia?`<span class="day-cycle">D${e.dia}</span>`:''}</div><div class="day-stamp">${si[e.symbol]||''}</div><div class="day-info">${[e.sensacao,e.aparencia].filter(Boolean).join('/')}</div>${rule?`<span class="day-regra">${rule}</span>`:''}</div>`;
+    const sens=e.sensacao||'';
+    const apar=e.aparencia||'';
+    h+=`<div class="cal-day t-${tc}${isT?' t-today':''}" onclick="calClick('${ds}')">
+      <div class="day-header"><span class="day-num">${d}</span>${e.relacao?'<span class="day-heart">♥</span>':''}${e.dia?`<span class="day-cycle">D${e.dia}</span>`:''}</div>
+      <div class="day-stamp">${si[e.symbol]||''}</div>
+      <div class="day-sens">${sens}</div>
+      <div class="day-apar">${apar}</div>
+      ${rule?`<div class="day-regra">${rule}</div>`:''}
+    </div>`;
   }
   g.innerHTML=h;
 }
@@ -686,15 +683,15 @@ function openEditModal(entry,idx,cycle){
 function mSym(b){b.closest('.symbol-grid').querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');document.getElementById('modal-content').dataset.sym=b.dataset.symbol}
 function mChip(c,g){c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');document.getElementById('modal-content').dataset[g==='sensacao'?'sens':'apar']=c.textContent}
 function mRegra(b){b.parentElement.querySelectorAll('.regra-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');document.getElementById('modal-content').dataset.regra=b.dataset.regra}
-function saveModal(idx){const c=document.getElementById('modal-content'),cy=cc(D);if(!cy)return;const e=cy.entries[idx];if(!e)return;e.symbol=c.dataset.sym;e.sensacao=c.dataset.sens;e.aparencia=c.dataset.apar;e.regra=c.dataset.regra;e.relacao=document.getElementById('m-rel').checked;e.notes=document.getElementById('m-notes').value;save(D);document.getElementById('edit-modal').classList.remove('show');toast('Atualizado!');renderCal();autoSync()}
+function saveModal(idx){const c=document.getElementById('modal-content'),cy=cc(D);if(!cy)return;const e=cy.entries[idx];if(!e)return;e.symbol=c.dataset.sym;e.sensacao=c.dataset.sens;e.aparencia=c.dataset.apar;e.regra=c.dataset.regra;e.relacao=document.getElementById('m-rel').checked;e.notes=document.getElementById('m-notes').value;save(D);document.getElementById('edit-modal').classList.remove('show');toast('Atualizado!');renderCal()}
 document.getElementById('edit-modal').addEventListener('click',e=>{if(e.target.id==='edit-modal')e.target.classList.remove('show')});
-function delEntry(idx){if(confirm('Excluir?')){cc(D).entries.splice(idx,1);save(D);document.getElementById('edit-modal').classList.remove('show');renderCal();toast('Excluído');autoSync()}}
+function delEntry(idx){if(confirm('Excluir?')){cc(D).entries.splice(idx,1);save(D);document.getElementById('edit-modal').classList.remove('show');renderCal();toast('Excluído')}}
 
 // CICLOS
 function renderCiclos(){renderObjCard();renderObjHist();renderCyclesList()}
 function renderCyclesList(){const l=document.getElementById('cycles-list');if(!D.cycles.length){l.innerHTML='<div class="empty-state"><div class="emoji">🌱</div><p>Nenhum ciclo.</p></div>';return}l.innerHTML=D.cycles.map((c,i)=>{const d=c.entries?c.entries.length:0,ic=i===D.currentCycleIndex,s=c.startDate?new Date(c.startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric'}):'';return`<div class="cycle-list-item" onclick="switchCycle(${i})" style="${ic?'border-left:3px solid var(--accent);':''}"><div class="cycle-info"><h3>${c.name}${ic?' ←':''}</h3><p>Início: ${s}</p></div><div class="cycle-days-badge">${d} dias</div></div>`}).join('')}
 function switchCycle(i){D.currentCycleIndex=i;save(D);renderCiclos();toast(D.cycles[i].name);autoFillDia()}
-function newCycle(){const n=D.cycles.length+1;D.cycles.push({id:Date.now(),name:'Ciclo '+n,startDate:new Date().toISOString().split('T')[0],entries:[]});D.currentCycleIndex=D.cycles.length-1;save(D);renderCiclos();autoFillDia();toast('Novo ciclo!');autoSync()}
+function newCycle(){const n=D.cycles.length+1;D.cycles.push({id:Date.now(),name:'Ciclo '+n,startDate:new Date().toISOString().split('T')[0],entries:[]});D.currentCycleIndex=D.cycles.length-1;save(D);renderCiclos();autoFillDia();toast('Novo ciclo!')}
 
 // EXPORT CSV
 function exportCSV(){const c=cc(D);if(!c||!c.entries.length){toast('Sem dados');return}let csv='Dia,Data,Símbolo,Sensação,Aparência,Regra,Relação,Obs\n';c.entries.forEach((e,i)=>{const r=e.regra||detectRule(e,c).rule;csv+=`${e.dia||i+1},${e.date},${e.symbol},${e.sensacao||''},${e.aparencia||''},${r},${e.relacao?'Sim':'Não'},"${(e.notes||'').replace(/"/g,'""')}"\n`});const b=new Blob([csv],{type:'text/csv;charset=utf-8;'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=c.name.replace(/\s/g,'_')+'.csv';a.click();URL.revokeObjectURL(u);toast('CSV exportado!')}
@@ -740,24 +737,24 @@ function exportPDF(){
   const totalRows=Math.ceil(totalDays/cols);
   const totalPages=Math.ceil(totalRows/rowsPerPage);
 
-  function drawStamp(e,cx,cy,r){
+  function drawStamp(e,cx,centerY,r){
     if(e.symbol==='menstruacao'){
-      doc.setFillColor(212,96,90);doc.circle(cx,cy,r,'F');
+      doc.setFillColor(212,96,90);doc.circle(cx,centerY,r,'F');
     }else if(e.symbol==='seca'){
-      doc.setFillColor(123,166,138);doc.circle(cx,cy,r,'F');
+      doc.setFillColor(123,166,138);doc.circle(cx,centerY,r,'F');
       // White vertical line inside
       doc.setDrawColor(255,255,255);doc.setLineWidth(0.6);
-      doc.line(cx,cy-r*0.6,cx,cy+r*0.6);
+      doc.line(cx,centerY-r*0.6,cx,centerY+r*0.6);
     }else if(e.symbol==='fertil'){
       doc.setFillColor(255,255,255);doc.setDrawColor(100);doc.setLineWidth(0.3);
-      doc.circle(cx,cy,r,'FD');
+      doc.circle(cx,centerY,r,'FD');
     }else if(e.symbol==='apice'){
-      doc.setFillColor(232,201,107);doc.circle(cx,cy,r,'F');
+      doc.setFillColor(232,201,107);doc.circle(cx,centerY,r,'F');
       // Red X inside
       doc.setDrawColor(200,50,50);doc.setLineWidth(0.5);
       const s=r*0.5;
-      doc.line(cx-s,cy-s,cx+s,cy+s);
-      doc.line(cx+s,cy-s,cx-s,cy+s);
+      doc.line(cx-s,centerY-s,cx+s,centerY+s);
+      doc.line(cx+s,centerY-s,cx-s,centerY+s);
     }
   }
 
@@ -911,68 +908,6 @@ function exportPDF(){
   setTimeout(()=>URL.revokeObjectURL(blobUrl),10000);
   toast('PDF gerado!');
 }
-
-// ===== CLOUD SYNC =====
-const SYNC_URL_KEY='mob_sync_url';
-function getSyncUrl(){return localStorage.getItem(SYNC_URL_KEY)||''}
-function saveSyncUrl(){const url=document.getElementById('sync-url').value.trim();if(!url){toast('Cole a URL');return}localStorage.setItem(SYNC_URL_KEY,url);toast('URL salva!');syncNow()}
-
-function setSyncStatus(msg,ok){const el=document.getElementById('sync-status');el.textContent=msg;el.style.color=ok?'#a0ffb0':'#ffb0a0'}
-function setSyncLog(msg){const el=document.getElementById('sync-log');if(el)el.textContent=msg}
-
-async function syncNow(){
-  const url=getSyncUrl();
-  if(!url){setSyncStatus('Offline (sem URL)',false);return}
-  setSyncStatus('Sincronizando...',true);setSyncLog('Enviando dados...');
-  try{
-    // Remove migration flags and internal fields before sending
-    const sendData=JSON.parse(JSON.stringify(D));
-    delete sendData._migrationDateShiftDone;
-    delete sendData._migrationChart2Done;
-    
-    const resp=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'sync',data:sendData}),redirect:'follow'});
-    const result=await resp.json();
-    if(result.success&&result.data){
-      // Update local with merged data
-      const merged=result.data;
-      // Preserve migration flags locally
-      merged._migrationDateShiftDone=true;
-      merged._migrationChart2Done=true;
-      // Preserve custom lists if not in merged
-      if(!merged.customSensacoes)merged.customSensacoes=D.customSensacoes;
-      if(!merged.customAparencias)merged.customAparencias=D.customAparencias;
-      D=merged;
-      save(D);
-      setSyncStatus('Sincronizado ✓',true);
-      setSyncLog('Última sync: '+new Date().toLocaleTimeString('pt-BR'));
-      // Refresh current view
-      renderRegChips();
-      const activeTab=document.querySelector('.tab.active');
-      if(activeTab){
-        if(activeTab.dataset.tab==='grafico')renderCal();
-        if(activeTab.dataset.tab==='pbi')renderPBI();
-        if(activeTab.dataset.tab==='ciclos')renderCiclos();
-      }
-    }else{
-      setSyncStatus('Erro na sync',false);
-      setSyncLog('Erro: '+(result.error||'resposta inválida'));
-    }
-  }catch(err){
-    setSyncStatus('Erro de conexão',false);
-    setSyncLog('Erro: '+err.message);
-  }
-}
-
-// Auto-sync after saves
-function autoSync(){const url=getSyncUrl();if(url)setTimeout(syncNow,500)}
-
-// Load sync URL on init
-(function initSync(){
-  const url=getSyncUrl();
-  const inp=document.getElementById('sync-url');
-  if(inp&&url)inp.value=url;
-  if(url){syncNow()}else{setSyncStatus('Offline',false)}
-})();
 
 function toast(msg){const t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
 
