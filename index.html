@@ -86,6 +86,7 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 .cal-day .day-sens{font-size:8px;line-height:1.2;color:rgba(0,0,0,.55);text-align:center;font-weight:500}
 .cal-day .day-apar{font-size:7px;line-height:1.2;color:rgba(0,0,0,.4);text-align:center}
 .cal-day .day-regra{font-size:7px;font-weight:700;color:rgba(0,0,0,.3);text-align:center;margin-top:auto}
+.cal-day .day-note-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);position:absolute;bottom:3px;left:4px}
 .cal-day.t-menstruacao{background:var(--red-light);border-color:var(--red)}
 .cal-day.t-seca{background:var(--green-light);border-color:var(--green)}
 .cal-day.t-fertil{background:var(--yellow-light);border-color:var(--yellow)}
@@ -253,6 +254,7 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--yellow-light);border:1px solid var(--yellow)"></div>Fértil</div>
 <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#FFE8CC;border:1px solid #E8A06B"></div>Ápice</div>
 <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>Pós-Áp.</div>
+<div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--accent);border-radius:50%"></div>Anotação</div>
 </div>
 </div>
 
@@ -288,6 +290,14 @@ textarea.input{resize:vertical;min-height:60px;font-size:14px}
 <h3>Para Engravidar</h3>
 <p>Relações durante sensação escorregadia e 1-2 dias após o Ápice.</p>
 </div>
+<div class="card"><h2>💾 Backup e Restauração</h2>
+<p style="margin-bottom:16px">Exporte uma cópia completa dos seus dados ou restaure a partir de um backup anterior.</p>
+<button class="btn-green" onclick="doBackup()" style="margin-bottom:8px">📥 Fazer Backup</button>
+<div class="form-group" style="margin-top:12px"><label>Restaurar Backup</label>
+<input type="file" accept=".json" id="restore-file" class="input" style="padding:10px" onchange="doRestore(this)">
+<p style="font-size:11px;color:var(--text-muted);margin-top:4px">Selecione o arquivo .json do backup. Os dados atuais serão substituídos.</p>
+</div>
+</div>
 </div>
 </main>
 <div class="modal-overlay" id="pdf-modal"><div class="modal" style="max-height:60vh">
@@ -316,12 +326,13 @@ function detectRule(e,cy){
   if(!cy||!cy.entries)return{rule:'',desc:'',cls:''};
   const es=cy.entries,idx=es.findIndex(x=>x.date===e.date);
   if(idx<0)return{rule:'',desc:'',cls:''};
-  if(e.symbol==='menstruacao')return{rule:'R1',desc:'Menstruação — evitar relações em sangramento forte.',cls:'warn'};
-  if(e.symbol==='apice')return{rule:'RA',desc:'Dia do Ápice — máxima fertilidade. Aguardar 3 dias completos.',cls:'danger'};
-  if(e.symbol==='fertil')return{rule:'R3',desc:'Muco fértil — mudança no padrão. Possível fertilidade.',cls:'danger'};
+  if(e.symbol==='menstruacao')return{rule:'R1',desc:'Menstruacao — evitar relacoes em sangramento forte.',cls:'warn'};
+  if(e.symbol==='apice')return{rule:'RA',desc:'Dia do Apice — maxima fertilidade. Aguardar 3 dias completos.',cls:'danger'};
+  // Check post-apice BEFORE other symbols
   const ai=es.findIndex(x=>x.symbol==='apice');
-  if(ai>=0&&idx>ai){const pd=idx-ai;if(pd<=3)return{rule:'RA',desc:`Pós-Ápice ${pd}/3 — aguardar 4ª noite.`,cls:'warn'};return{rule:'RA',desc:`Pós-Ápice dia ${pd} — relações disponíveis.`,cls:''};}
-  if(e.symbol==='seca'){const m=isPbi(e);if(m===null)return{rule:'',desc:'PBI não definido.',cls:''};if(m)return{rule:'R2',desc:'Dentro do PBI — noites alternadas.',cls:''};return{rule:'R3',desc:'Fora do PBI — possível mudança. Aguardar 3 dias de PBI (4ª noite).',cls:'warn'};}
+  if(ai>=0&&idx>ai){const pd=idx-ai;if(pd<=3)return{rule:'RA',desc:'Pos-Apice '+pd+'/3 — aguardar 4a noite.',cls:'warn'};return{rule:'RA',desc:'Pos-Apice dia '+pd+' — relacoes disponiveis.',cls:''};}
+  if(e.symbol==='fertil')return{rule:'R3',desc:'Muco fertil — mudanca no padrao. Possivel fertilidade.',cls:'danger'};
+  if(e.symbol==='seca'){const m=isPbi(e);if(m===null)return{rule:'',desc:'PBI nao definido.',cls:''};if(m)return{rule:'R2',desc:'Dentro do PBI — noites alternadas.',cls:''};return{rule:'R3',desc:'Fora do PBI — possivel mudanca. Aguardar 3 dias de PBI (4a noite).',cls:'warn'};}
   return{rule:'',desc:'',cls:''}
 }
 function getOrient(e,cy){
@@ -330,23 +341,23 @@ function getOrient(e,cy){
   const r=detectRule(e,cy);
   if(obj.type==='evitar'){
     if(e.symbol==='menstruacao')return{text:'Evitar em sangramento forte.',icon:'🛡️'};
-    if(e.symbol==='fertil')return{text:'Período fértil! Abster-se até 4º dia pós-Ápice.',icon:'⚠️'};
-    if(e.symbol==='apice')return{text:'Dia mais fértil! Contar 3 dias. Só retomar 4ª noite.',icon:'🚫'};
-    if(pa>0&&pa<=3)return{text:`Pós-Ápice ${pa}/3. Não ter relações.`,icon:'⏳'};
-    if(pa>3)return{text:'Relações liberadas todos os dias.',icon:'✅'};
+    if(e.symbol==='apice')return{text:'Dia mais fertil! Contar 3 dias. So retomar 4a noite.',icon:'🚫'};
+    if(pa>0&&pa<=3)return{text:'Pos-Apice '+pa+'/3. Nao ter relacoes.',icon:'⏳'};
+    if(pa>3)return{text:'Relacoes liberadas todos os dias.',icon:'✅'};
+    if(e.symbol==='fertil')return{text:'Periodo fertil! Abster-se ate 4o dia pos-Apice.',icon:'⚠️'};
     if(r.rule==='R2')return{text:'PBI. Noites alternadas.',icon:'🟢'};
-    if(r.rule==='R3')return{text:'Mudança! Evitar. Aguardar 3 dias PBI, 4ª noite.',icon:'⚠️'};
+    if(r.rule==='R3')return{text:'Mudanca! Evitar. Aguardar 3 dias PBI, 4a noite.',icon:'⚠️'};
     return null;
   }
   if(obj.type==='engravidar'){
-    if(e.symbol==='menstruacao')return{text:'Aguardar muco fértil.',icon:'⏳'};
-    if(e.symbol==='fertil')return{text:'Muco fértil! Momento ideal.',icon:'💚'};
-    if(e.symbol==='apice')return{text:'Máxima fertilidade! Relações hoje e amanhã.',icon:'💚'};
-    if(pa===1)return{text:'1 dia pós-Ápice. Ainda há chances.',icon:'💚'};
-    if(pa===2)return{text:'2 dias pós-Ápice. Chances diminuindo.',icon:'🟡'};
-    if(pa>2)return{text:'Janela fértil encerrada.',icon:'⏳'};
-    if(r.rule==='R2')return{text:'PBI — aguardar mudança.',icon:'⏳'};
-    if(r.rule==='R3')return{text:'Possível mudança! Observar evolução.',icon:'👀'};
+    if(e.symbol==='menstruacao')return{text:'Aguardar muco fertil.',icon:'⏳'};
+    if(e.symbol==='apice')return{text:'Maxima fertilidade! Relacoes hoje e amanha.',icon:'💚'};
+    if(pa===1)return{text:'1 dia pos-Apice. Ainda ha chances.',icon:'💚'};
+    if(pa===2)return{text:'2 dias pos-Apice. Chances diminuindo.',icon:'🟡'};
+    if(pa>2)return{text:'Janela fertil encerrada.',icon:'⏳'};
+    if(e.symbol==='fertil')return{text:'Muco fertil! Momento ideal.',icon:'💚'};
+    if(r.rule==='R2')return{text:'PBI — aguardar mudanca.',icon:'⏳'};
+    if(r.rule==='R3')return{text:'Possivel mudanca! Observar evolucao.',icon:'👀'};
     return null;
   }
   return null;
@@ -527,6 +538,18 @@ const defaultSens=['Seca','Umida','Molhada','Escorregadia','Lubrificada','Pegajo
 const defaultApar=['Nada','Creme','Viscoso','Elastico','Transparente','Opaco','Catarro','Pouco','Sangue'];
 if(!D.customSensacoes)D.customSensacoes=[...defaultSens];
 if(!D.customAparencias)D.customAparencias=[...defaultApar];
+
+// ONE-TIME: Recompute all dia numbers
+if(!D._migrationDiasRecomputed){
+  D.cycles.forEach(cy=>{
+    if(cy.entries){
+      cy.entries.sort((a,b)=>a.date.localeCompare(b.date));
+      cy.entries.forEach((e,i)=>{e.dia=i+1});
+    }
+  });
+  D._migrationDiasRecomputed=true;
+}
+
 save(D);
 document.getElementById('entry-date').value=new Date().toISOString().split('T')[0];
 document.getElementById('obj-start-date').value=new Date().toISOString().split('T')[0];
@@ -568,12 +591,34 @@ function saveEntry(){
   const ei=cycle.entries.findIndex(e=>e.date===date);
   if(ei>=0)cycle.entries[ei]=entry;else cycle.entries.push(entry);
   cycle.entries.sort((a,b)=>a.date.localeCompare(b.date));
+  recomputeDias(cycle);
+  // Auto-detect new cycle on menstruation
+  if(fSym==='menstruacao'){
+    const idx=cycle.entries.findIndex(e=>e.date===date);
+    if(idx>0&&cycle.entries[idx-1].symbol!=='menstruacao'){
+      if(confirm('Menstruacao detectada! Iniciar novo ciclo a partir desta data?')){
+        const newEntries=cycle.entries.splice(idx);
+        recomputeDias(cycle);
+        const newCycle={id:Date.now(),name:'Ciclo '+(D.cycles.length+1),startDate:date,entries:newEntries};
+        recomputeDias(newCycle);
+        D.cycles.push(newCycle);
+        D.currentCycleIndex=D.cycles.length-1;
+      }
+    }
+  }
   save(D);toast('Salvo! ✓');
   fSym='';fSens='';fApar='';fRegra='';
   document.querySelectorAll('.symbol-btn,.chip,.regra-chip').forEach(b=>b.classList.remove('selected'));
   document.getElementById('relacao-check').checked=false;document.getElementById('entry-notes').value='';
   const c=new Date(date);c.setDate(c.getDate()+1);document.getElementById('entry-date').value=c.toISOString().split('T')[0];
   autoFillDia();
+}
+
+// Recompute dia numbers sequentially
+function recomputeDias(cycle){
+  if(!cycle||!cycle.entries)return;
+  cycle.entries.sort((a,b)=>a.date.localeCompare(b.date));
+  cycle.entries.forEach((e,i)=>{e.dia=i+1});
 }
 
 // TABS
@@ -616,8 +661,8 @@ function renderPBI(){
   be.innerHTML=`<div class="pbi-banner ${pc}"><div class="phase-icon">${icon}</div><div class="phase-name">${name}</div><div class="phase-desc">${desc}</div></div>`;
   const ori=getOrient(last,cy);re.innerHTML=ori?`<div class="pbi-rec"><h3>${ori.icon} Orientação</h3><p>${ori.text}</p></div>`:'';
   const today=new Date().toISOString().split('T')[0];
-  let th='<div class="timeline-bar">';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai)c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';th+=`<div class="timeline-seg ${c}" style="width:${(100/tot).toFixed(2)}%"></div>`});th+='</div>';tl.innerHTML=th;
-  let dh='';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai&&e.symbol!=='apice')c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';dh+=`<div class="pbi-dot ${c}${e.date===today?' today':''}">${e.dia||i+1}</div>`});dots.innerHTML=dh;ld.textContent='Dia '+tot;
+  let th='<div class="timeline-bar">';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai&&i-ai<=3)c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';th+=`<div class="timeline-seg ${c}" style="width:${(100/tot).toFixed(2)}%"></div>`});th+='</div>';tl.innerHTML=th;
+  let dh='';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai&&i-ai<=3&&e.symbol!=='apice')c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';dh+=`<div class="pbi-dot ${c}${e.date===today?' today':''}">${e.dia||i+1}</div>`});dots.innerHTML=dh;ld.textContent='Dia '+tot;
   const ms=es.filter(e=>e.symbol==='menstruacao').length,ss=es.filter(e=>e.symbol==='seca').length,fs=es.filter(e=>e.symbol==='fertil').length;
   let dd=`<div class="detail-row"><span class="detail-label">Dias</span><span class="detail-value">${tot}</span></div>`;
   dd+=`<div class="detail-row"><span class="detail-label">Menstruação</span><span class="detail-value" style="color:var(--red)">${ms}</span></div>`;
@@ -630,7 +675,7 @@ function renderPBI(){
 // CALENDAR
 let calY,calM;(()=>{const n=new Date();calY=n.getFullYear();calM=n.getMonth()})();
 function calNav(dir){calM+=dir;if(calM>11){calM=0;calY++}if(calM<0){calM=11;calY--}renderCal()}
-function allEntries(){const m={};D.cycles.forEach(cy=>{if(!cy.entries)return;const ai=cy.entries.findIndex(e=>e.symbol==='apice');cy.entries.forEach((e,i)=>{const en={...e,_cy:cy};if(ai>=0&&i>ai)en._pa=i-ai;m[e.date]=en})});return m}
+function allEntries(){const m={};D.cycles.forEach(cy=>{if(!cy.entries)return;const ai=cy.entries.findIndex(e=>e.symbol==='apice');cy.entries.forEach((e,i)=>{const en={...e,_cy:cy};if(ai>=0&&i>ai){const pa=i-ai;if(pa<=3)en._pa=pa;}m[e.date]=en})});return m}
 
 function renderCal(){
   const g=document.getElementById('cal-grid'),t=document.getElementById('cal-month-title');
@@ -652,6 +697,7 @@ function renderCal(){
       <div class="day-sens">${sens}</div>
       <div class="day-apar">${apar}</div>
       ${rule?`<div class="day-regra">${rule}</div>`:''}
+      ${e.notes?'<div class="day-note-dot"></div>':''}
     </div>`;
   }
   g.innerHTML=h;
@@ -683,9 +729,9 @@ function openEditModal(entry,idx,cycle){
 function mSym(b){b.closest('.symbol-grid').querySelectorAll('.symbol-btn').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');document.getElementById('modal-content').dataset.sym=b.dataset.symbol}
 function mChip(c,g){c.parentElement.querySelectorAll('.chip').forEach(x=>x.classList.remove('selected'));c.classList.add('selected');document.getElementById('modal-content').dataset[g==='sensacao'?'sens':'apar']=c.textContent}
 function mRegra(b){b.parentElement.querySelectorAll('.regra-chip').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');document.getElementById('modal-content').dataset.regra=b.dataset.regra}
-function saveModal(idx){const c=document.getElementById('modal-content'),cy=cc(D);if(!cy)return;const e=cy.entries[idx];if(!e)return;e.symbol=c.dataset.sym;e.sensacao=c.dataset.sens;e.aparencia=c.dataset.apar;e.regra=c.dataset.regra;e.relacao=document.getElementById('m-rel').checked;e.notes=document.getElementById('m-notes').value;save(D);document.getElementById('edit-modal').classList.remove('show');toast('Atualizado!');renderCal()}
+function saveModal(idx){const c=document.getElementById('modal-content'),cy=cc(D);if(!cy)return;const e=cy.entries[idx];if(!e)return;e.symbol=c.dataset.sym;e.sensacao=c.dataset.sens;e.aparencia=c.dataset.apar;e.regra=c.dataset.regra;e.relacao=document.getElementById('m-rel').checked;e.notes=document.getElementById('m-notes').value;recomputeDias(cy);save(D);document.getElementById('edit-modal').classList.remove('show');toast('Atualizado!');renderCal()}
 document.getElementById('edit-modal').addEventListener('click',e=>{if(e.target.id==='edit-modal')e.target.classList.remove('show')});
-function delEntry(idx){if(confirm('Excluir?')){cc(D).entries.splice(idx,1);save(D);document.getElementById('edit-modal').classList.remove('show');renderCal();toast('Excluído')}}
+function delEntry(idx){if(confirm('Excluir?')){const cy=cc(D);cy.entries.splice(idx,1);recomputeDias(cy);save(D);document.getElementById('edit-modal').classList.remove('show');renderCal();toast('Excluido')}}
 
 // CICLOS
 function renderCiclos(){renderObjCard();renderObjHist();renderCyclesList()}
@@ -892,117 +938,36 @@ function exportPDF(){
     }
   }
 
-  const fileName=cy.name.replace(/\s/g,'_')+'_'+startDate+'_a_'+endDate+'.pdf';
-  const pdfBlob=doc.output('blob');
-  const blobUrl=URL.createObjectURL(pdfBlob);
-  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-  if(isMobile){
-    // Open in new tab - user can save/share from there
-    window.open(blobUrl,'_blank');
-  }else{
-    // Desktop: direct download
-    const a=document.createElement('a');a.href=blobUrl;
-    a.download=fileName;
-    a.click();
+  // === ANNOTATIONS PAGE ===
+  const notedEntries=entries.filter(e=>e.notes&&e.notes.trim());
+  if(notedEntries.length>0){
+    doc.addPage();
+    doc.setFontSize(14);doc.setFont('helvetica','bold');doc.setTextColor(0);
+    doc.text('ANOTACOES',pw/2,margin+5,{align:'center'});
+    doc.setFontSize(8);doc.setFont('helvetica','normal');
+    const rangeStr2=new Date(startDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})+' a '+new Date(endDate+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    doc.text(cy.name+' | '+rangeStr2,pw/2,margin+9,{align:'center'});
+    let noteY=margin+18;
+    const maxY=ph-margin;
+    notedEntries.forEach(e=>{
+      if(noteY>maxY-15){doc.addPage();noteY=margin+10;}
+      const dt=new Date(e.date+'T12:00:00');
+      const dateStr=String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();
+      const desc=[e.sensacao,e.aparencia].filter(Boolean).join(' / ');
+      // Date header
+      doc.setFontSize(10);doc.setFont('helvetica','bold');doc.setTextColor(0);
+      doc.text('Dia '+e.dia+' ('+dateStr+') - '+desc,margin,noteY);
+      noteY+=5;
+      // Note text
+      doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(80);
+      const lines=doc.splitTextToSize(e.notes,pw-margin*2);
+      lines.forEach(line=>{
+        if(noteY>maxY-5){doc.addPage();noteY=margin+10;}
+        doc.text(line,margin+4,noteY);
+        noteY+=4.5;
+      });
+      noteY+=4;
+    });
   }
-  setTimeout(()=>URL.revokeObjectURL(blobUrl),10000);
-  toast('PDF gerado!');
-}
 
-function toast(msg){const t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
-
-// ===== CLOUD SYNC =====
-const API_URL='https://script.google.com/macros/s/AKfycbzu7_IG0NqFFPBn7Z1KidMaavHZVUQElTvRWcWpucuQgBNiqRfghBpWP8zMDqrJbhcT2A/exec';
-
-function setSyncStatus(icon,text){document.getElementById('sync-status').textContent=icon+' '+text}
-
-async function cloudSave(){
-  setSyncStatus('🔄','Salvando...');
-  try{
-    const data=localStorage.getItem(SK)||'{}';
-    const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',data:data}),headers:{'Content-Type':'text/plain'}});
-    const json=await res.json();
-    if(json.success){
-      setSyncStatus('☁️✅','Sincronizado');
-      D._lastSync=new Date().toISOString();
-      localStorage.setItem(SK,JSON.stringify(D));
-    }else{
-      setSyncStatus('⚠️','Erro ao salvar');
-    }
-  }catch(e){
-    setSyncStatus('📴','Offline - salvo local');
-  }
-}
-
-async function cloudLoad(){
-  setSyncStatus('🔄','Carregando...');
-  try{
-    const res=await fetch(API_URL);
-    const json=await res.json();
-    if(json.success&&json.data&&json.data!=='{}'){
-      const cloudData=JSON.parse(json.data);
-      // Se nuvem tem dados, usa nuvem como fonte de verdade
-      if(cloudData.cycles&&cloudData.cycles.length>0){
-        // Preservar flags de migracao local
-        cloudData._migrationDateShiftDone=true;
-        cloudData._migrationChart2Done=true;
-        D=cloudData;
-        if(!D.pbiHistory)D.pbiHistory=[];
-        if(!D.objHistory)D.objHistory=[];
-        if(!D.customSensacoes)D.customSensacoes=[...defaultSens];
-        if(!D.customAparencias)D.customAparencias=[...defaultApar];
-        localStorage.setItem(SK,JSON.stringify(D));
-        renderRegChips();
-        setSyncStatus('☁️✅','Sincronizado');
-        // Refresh current tab
-        const activeTab=document.querySelector('.tab.active');
-        if(activeTab){
-          const tab=activeTab.dataset.tab;
-          if(tab==='grafico')renderCal();
-          if(tab==='ciclos')renderCiclos();
-          if(tab==='pbi')renderPBI();
-        }
-        return;
-      }
-    }
-    // Nuvem vazia - fazer upload dos dados locais
-    if(D.cycles&&D.cycles.length>0){
-      await cloudSave();
-      setSyncStatus('☁️✅','Dados enviados');
-    }else{
-      setSyncStatus('☁️','Sem dados');
-    }
-  }catch(e){
-    setSyncStatus('📴','Offline');
-  }
-}
-
-async function manualSync(){
-  setSyncStatus('🔄','Sincronizando...');
-  await cloudLoad();
-  toast('Sincronizado!');
-}
-
-// Override save to also sync to cloud
-const _originalSave=save;
-save=function(d){
-  _originalSave(d);
-  // Sync to cloud in background (don't await)
-  cloudSave().catch(()=>{});
-};
-
-// Initial cloud load (after local data is ready)
-setTimeout(()=>cloudLoad(),500);
-
-// Sync when app comes back to foreground
-document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden)cloudLoad().catch(()=>{});
-});
-
-// ===== SERVICE WORKER =====
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW registrado')).catch(e=>console.log('SW erro:',e));
-}
-</script>
-</body>
-</html>
+  const fileName=cy.name.replace(/\s/
