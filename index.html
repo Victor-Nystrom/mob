@@ -970,4 +970,162 @@ function exportPDF(){
     });
   }
 
-  const fileName=cy.name.replace(/\s/
+  const fileName=cy.name.replace(/\s/g,'_')+'_'+startDate+'_a_'+endDate+'.pdf';
+  const pdfBlob=doc.output('blob');
+  const blobUrl=URL.createObjectURL(pdfBlob);
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    // Open in new tab - user can save/share from there
+    window.open(blobUrl,'_blank');
+  }else{
+    // Desktop: direct download
+    const a=document.createElement('a');a.href=blobUrl;
+    a.download=fileName;
+    a.click();
+  }
+  setTimeout(()=>URL.revokeObjectURL(blobUrl),10000);
+  toast('PDF gerado!');
+}
+
+function toast(msg){const t=document.getElementById('toast-el');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200)}
+
+// BACKUP & RESTORE
+function doBackup(){
+  const data=JSON.stringify(D,null,2);
+  const blob=new Blob([data],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const dt=new Date().toISOString().split('T')[0];
+  const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isMobile){
+    window.open(url,'_blank');
+  }else{
+    const a=document.createElement('a');a.href=url;a.download='MOB_Backup_'+dt+'.json';a.click();
+  }
+  URL.revokeObjectURL(url);
+  toast('Backup gerado!');
+}
+
+function doRestore(input){
+  const file=input.files[0];
+  if(!file){return}
+  if(!confirm('Tem certeza que deseja restaurar? Os dados atuais serao substituidos pelo backup.')){input.value='';return}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const restored=JSON.parse(e.target.result);
+      if(!restored.cycles){toast('Arquivo invalido');input.value='';return}
+      restored._migrationDateShiftDone=true;
+      restored._migrationChart2Done=true;
+      restored._migrationDiasRecomputed=true;
+      D=restored;
+      if(!D.pbiHistory)D.pbiHistory=[];
+      if(!D.objHistory)D.objHistory=[];
+      if(!D.customSensacoes)D.customSensacoes=[...defaultSens];
+      if(!D.customAparencias)D.customAparencias=[...defaultApar];
+      save(D);
+      renderRegChips();
+      toast('Backup restaurado com sucesso!');
+      setTimeout(()=>location.reload(),1000);
+    }catch(err){
+      toast('Erro ao ler arquivo');
+    }
+    input.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ===== CLOUD SYNC =====
+const API_URL='https://script.google.com/macros/s/AKfycbzu7_IG0NqFFPBn7Z1KidMaavHZVUQElTvRWcWpucuQgBNiqRfghBpWP8zMDqrJbhcT2A/exec';
+
+function setSyncStatus(icon,text){document.getElementById('sync-status').textContent=icon+' '+text}
+
+async function cloudSave(){
+  setSyncStatus('🔄','Salvando...');
+  try{
+    const data=localStorage.getItem(SK)||'{}';
+    const res=await fetch(API_URL,{method:'POST',body:JSON.stringify({action:'save',data:data}),headers:{'Content-Type':'text/plain'}});
+    const json=await res.json();
+    if(json.success){
+      setSyncStatus('☁️✅','Sincronizado');
+      D._lastSync=new Date().toISOString();
+      localStorage.setItem(SK,JSON.stringify(D));
+    }else{
+      setSyncStatus('⚠️','Erro ao salvar');
+    }
+  }catch(e){
+    setSyncStatus('📴','Offline - salvo local');
+  }
+}
+
+async function cloudLoad(){
+  setSyncStatus('🔄','Carregando...');
+  try{
+    const res=await fetch(API_URL);
+    const json=await res.json();
+    if(json.success&&json.data&&json.data!=='{}'){
+      const cloudData=JSON.parse(json.data);
+      // Se nuvem tem dados, usa nuvem como fonte de verdade
+      if(cloudData.cycles&&cloudData.cycles.length>0){
+        // Preservar flags de migracao local
+        cloudData._migrationDateShiftDone=true;
+        cloudData._migrationChart2Done=true;
+        D=cloudData;
+        if(!D.pbiHistory)D.pbiHistory=[];
+        if(!D.objHistory)D.objHistory=[];
+        if(!D.customSensacoes)D.customSensacoes=[...defaultSens];
+        if(!D.customAparencias)D.customAparencias=[...defaultApar];
+        localStorage.setItem(SK,JSON.stringify(D));
+        renderRegChips();
+        setSyncStatus('☁️✅','Sincronizado');
+        // Refresh current tab
+        const activeTab=document.querySelector('.tab.active');
+        if(activeTab){
+          const tab=activeTab.dataset.tab;
+          if(tab==='grafico')renderCal();
+          if(tab==='ciclos')renderCiclos();
+          if(tab==='pbi')renderPBI();
+        }
+        return;
+      }
+    }
+    // Nuvem vazia - fazer upload dos dados locais
+    if(D.cycles&&D.cycles.length>0){
+      await cloudSave();
+      setSyncStatus('☁️✅','Dados enviados');
+    }else{
+      setSyncStatus('☁️','Sem dados');
+    }
+  }catch(e){
+    setSyncStatus('📴','Offline');
+  }
+}
+
+async function manualSync(){
+  setSyncStatus('🔄','Sincronizando...');
+  await cloudLoad();
+  toast('Sincronizado!');
+}
+
+// Override save to also sync to cloud
+const _originalSave=save;
+save=function(d){
+  _originalSave(d);
+  // Sync to cloud in background (don't await)
+  cloudSave().catch(()=>{});
+};
+
+// Initial cloud load (after local data is ready)
+setTimeout(()=>cloudLoad(),500);
+
+// Sync when app comes back to foreground
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden)cloudLoad().catch(()=>{});
+});
+
+// ===== SERVICE WORKER =====
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(()=>console.log('SW registrado')).catch(e=>console.log('SW erro:',e));
+}
+</script>
+</body>
+</html>
