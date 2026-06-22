@@ -322,6 +322,7 @@ function getAPbi(date){if(!D.pbiHistory||!D.pbiHistory.length)return null;let a=
 function isPbi(e){const p=getAPbi(e.date);if(!p||!p.combos||!p.combos.length)return null;return p.combos.some(c=>c[0]===e.sensacao&&c[1]===e.aparencia)}
 function getAObj(date){if(!D.objHistory||!D.objHistory.length)return null;let a=null;for(const o of D.objHistory){if(o.startDate<=date)a=o;else break}return a}
 
+function lastApice(es,idx){for(let j=idx-1;j>=0;j--){if(es[j].symbol==='apice')return j;}return -1;}
 function detectRule(e,cy){
   if(!cy||!cy.entries)return{rule:'',desc:'',cls:''};
   const es=cy.entries,idx=es.findIndex(x=>x.date===e.date);
@@ -329,22 +330,22 @@ function detectRule(e,cy){
   if(e.symbol==='menstruacao')return{rule:'R1',desc:'Menstruacao — evitar relacoes em sangramento forte.',cls:'warn'};
   if(e.symbol==='apice')return{rule:'RA',desc:'Dia do Apice — maxima fertilidade. Aguardar 3 dias completos.',cls:'danger'};
   // Check post-apice BEFORE other symbols
-  const ai=es.findIndex(x=>x.symbol==='apice');
-  if(ai>=0&&idx>ai){const pd=idx-ai;if(pd<=3)return{rule:'RA',desc:'Pos-Apice '+pd+'/3 — aguardar 4a noite.',cls:'warn'};return{rule:'RA',desc:'Pos-Apice dia '+pd+' — relacoes disponiveis.',cls:''};}
+  const ai=lastApice(es,idx);
+  if(ai>=0&&idx-ai<=3){const pd=idx-ai;return{rule:'RA',desc:'Pos-Apice '+pd+'/3 — aguardar 4a noite.',cls:'warn'};}
   if(e.symbol==='fertil')return{rule:'R3',desc:'Muco fertil — mudanca no padrao. Possivel fertilidade.',cls:'danger'};
   if(e.symbol==='seca'){const m=isPbi(e);if(m===null)return{rule:'',desc:'PBI nao definido.',cls:''};if(m)return{rule:'R2',desc:'Dentro do PBI — noites alternadas.',cls:''};return{rule:'R3',desc:'Fora do PBI — possivel mudanca. Aguardar 3 dias de PBI (4a noite).',cls:'warn'};}
   return{rule:'',desc:'',cls:''}
 }
 function getOrient(e,cy){
   const obj=getAObj(e.date);if(!obj)return null;
-  const es=cy?cy.entries:[],ai=es.findIndex(x=>x.symbol==='apice'),idx=es.findIndex(x=>x.date===e.date),pa=ai>=0&&idx>ai?idx-ai:-1;
+  const es=cy?cy.entries:[],idx=es.findIndex(x=>x.date===e.date),ai=lastApice(es,idx),pa=ai>=0?idx-ai:-1;
   const r=detectRule(e,cy);
   if(obj.type==='evitar'){
     if(e.symbol==='menstruacao')return{text:'Evitar em sangramento forte.',icon:'🛡️'};
     if(e.symbol==='apice')return{text:'Dia mais fertil! Contar 3 dias. So retomar 4a noite.',icon:'🚫'};
+    if(e.symbol==='fertil')return{text:'Periodo fertil! Abster-se ate 4o dia pos-Apice.',icon:'⚠️'};
     if(pa>0&&pa<=3)return{text:'Pos-Apice '+pa+'/3. Nao ter relacoes.',icon:'⏳'};
     if(pa>3)return{text:'Relacoes liberadas todos os dias.',icon:'✅'};
-    if(e.symbol==='fertil')return{text:'Periodo fertil! Abster-se ate 4o dia pos-Apice.',icon:'⚠️'};
     if(r.rule==='R2')return{text:'PBI. Noites alternadas.',icon:'🟢'};
     if(r.rule==='R3')return{text:'Mudanca! Evitar. Aguardar 3 dias PBI, 4a noite.',icon:'⚠️'};
     return null;
@@ -352,10 +353,10 @@ function getOrient(e,cy){
   if(obj.type==='engravidar'){
     if(e.symbol==='menstruacao')return{text:'Aguardar muco fertil.',icon:'⏳'};
     if(e.symbol==='apice')return{text:'Maxima fertilidade! Relacoes hoje e amanha.',icon:'💚'};
+    if(e.symbol==='fertil')return{text:'Muco fertil! Momento ideal.',icon:'💚'};
     if(pa===1)return{text:'1 dia pos-Apice. Ainda ha chances.',icon:'💚'};
     if(pa===2)return{text:'2 dias pos-Apice. Chances diminuindo.',icon:'🟡'};
     if(pa>2)return{text:'Janela fertil encerrada.',icon:'⏳'};
-    if(e.symbol==='fertil')return{text:'Muco fertil! Momento ideal.',icon:'💚'};
     if(r.rule==='R2')return{text:'PBI — aguardar mudanca.',icon:'⏳'};
     if(r.rule==='R3')return{text:'Possivel mudanca! Observar evolucao.',icon:'👀'};
     return null;
@@ -649,20 +650,20 @@ function renderPBI(){
   const cp=getAPbi(new Date().toISOString().split('T')[0]);if(cp&&!tempC.length)tempC=cp.combos.map(c=>[...c]);
   renderPbiC();renderPbiHist();
   if(!cy||!cy.entries.length){be.innerHTML='<div class="pbi-banner sem-dados"><div class="phase-icon">📝</div><div class="phase-name">Sem Dados</div><div class="phase-desc">Registre dias.</div></div>';re.innerHTML='';dots.innerHTML='';tl.innerHTML='';dr.innerHTML='';ld.textContent='';return}
-  const es=cy.entries,tot=es.length,last=es[tot-1],hp=D.pbiHistory.length>0,ai=es.findIndex(e=>e.symbol==='apice'),ha=ai>=0,pa=ha?tot-1-ai:0;
+  const es=cy.entries,tot=es.length,last=es[tot-1],hp=D.pbiHistory.length>0,ai=lastApice(es,tot-1),ha=ai>=0,pa=ha?tot-1-ai:0;
   let pc,icon,name,desc;
   if(last.symbol==='menstruacao'){pc='menstruacao';icon='🔴';name='Menstruação';desc='R1.';}
-  else if(ha&&pa>=3){pc='infertil-pos';icon='🔵';name='Infértil Pós-Ápice';desc=`Dia ${pa} pós-Ápice.`;}
-  else if(ha&&pa>0){pc='pos-apice';icon='⏳';name=`Pós-Ápice (Á+${pa})`;desc=`Faltam ${3-pa} dia(s).`;}
   else if(last.symbol==='apice'){pc='apice';icon='🟡';name='Ápice';desc='Máxima fertilidade!';}
   else if(last.symbol==='fertil'){pc='fertil';icon='🟡';name='Fértil';desc='Muco em mudança.';}
+  else if(ha&&pa>0&&pa<=3){pc='pos-apice';icon='⏳';name=`Pós-Ápice (Á+${pa})`;desc=`Faltam ${3-pa} dia(s).`;}
+  else if(ha&&pa>3){pc='infertil-pos';icon='🔵';name='Infértil Pós-Ápice';desc=`Dia ${pa} pós-Ápice.`;}
   else if(last.symbol==='seca'){const m=isPbi(last);if(!hp){pc='sem-pbi';icon='🟤';name='PBI Não Definido';desc='Configure abaixo.';}else if(m){pc='pbi';icon='🟢';name='PBI';desc='Sem mudança. R2.';}else{pc='fertil';icon='⚠️';name='Possível Mudança';desc=last.sensacao+'/'+last.aparencia+' fora do PBI.';}}
   else{pc='sem-dados';icon='❓';name='?';desc='';}
   be.innerHTML=`<div class="pbi-banner ${pc}"><div class="phase-icon">${icon}</div><div class="phase-name">${name}</div><div class="phase-desc">${desc}</div></div>`;
   const ori=getOrient(last,cy);re.innerHTML=ori?`<div class="pbi-rec"><h3>${ori.icon} Orientação</h3><p>${ori.text}</p></div>`:'';
   const today=new Date().toISOString().split('T')[0];
-  let th='<div class="timeline-bar">';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai&&i-ai<=3)c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';th+=`<div class="timeline-seg ${c}" style="width:${(100/tot).toFixed(2)}%"></div>`});th+='</div>';tl.innerHTML=th;
-  let dh='';es.forEach((e,i)=>{let c=e.symbol;if(ha&&i>ai&&i-ai<=3&&e.symbol!=='apice')c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';dh+=`<div class="pbi-dot ${c}${e.date===today?' today':''}">${e.dia||i+1}</div>`});dots.innerHTML=dh;ld.textContent='Dia '+tot;
+  let th='<div class="timeline-bar">';es.forEach((e,i)=>{let c=e.symbol;const rai=lastApice(es,i);if(rai>=0&&i-rai<=3)c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';th+=`<div class="timeline-seg ${c}" style="width:${(100/tot).toFixed(2)}%"></div>`});th+='</div>';tl.innerHTML=th;
+  let dh='';es.forEach((e,i)=>{let c=e.symbol;const rai=lastApice(es,i);if(rai>=0&&i-rai<=3&&e.symbol!=='apice')c='pos-apice';if(hp&&e.symbol==='seca'&&isPbi(e)===false)c='mudanca';dh+=`<div class="pbi-dot ${c}${e.date===today?' today':''}">${e.dia||i+1}</div>`});dots.innerHTML=dh;ld.textContent='Dia '+tot;
   const ms=es.filter(e=>e.symbol==='menstruacao').length,ss=es.filter(e=>e.symbol==='seca').length,fs=es.filter(e=>e.symbol==='fertil').length;
   let dd=`<div class="detail-row"><span class="detail-label">Dias</span><span class="detail-value">${tot}</span></div>`;
   dd+=`<div class="detail-row"><span class="detail-label">Menstruação</span><span class="detail-value" style="color:var(--red)">${ms}</span></div>`;
@@ -675,7 +676,7 @@ function renderPBI(){
 // CALENDAR
 let calY,calM;(()=>{const n=new Date();calY=n.getFullYear();calM=n.getMonth()})();
 function calNav(dir){calM+=dir;if(calM>11){calM=0;calY++}if(calM<0){calM=11;calY--}renderCal()}
-function allEntries(){const m={};D.cycles.forEach(cy=>{if(!cy.entries)return;const ai=cy.entries.findIndex(e=>e.symbol==='apice');cy.entries.forEach((e,i)=>{const en={...e,_cy:cy};if(ai>=0&&i>ai){const pa=i-ai;if(pa<=3)en._pa=pa;}m[e.date]=en})});return m}
+function allEntries(){const m={};D.cycles.forEach(cy=>{if(!cy.entries)return;cy.entries.forEach((e,i)=>{const en={...e,_cy:cy};const ai=lastApice(cy.entries,i);if(ai>=0){const pa=i-ai;if(pa<=3)en._pa=pa;}m[e.date]=en})});return m}
 
 function renderCal(){
   const g=document.getElementById('cal-grid'),t=document.getElementById('cal-month-title');
